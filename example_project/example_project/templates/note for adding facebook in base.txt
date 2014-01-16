@@ -1,0 +1,46 @@
+ {% if not user.is_authenticated %}
+
+        <div class="inner_content">
+
+            <form action="{% url 'facebook_connect' %}" method="post">
+                <h2>Register, login or connect with Facebook</h2>
+                <br />
+                {% csrf_token %}
+                <input type="hidden" value="{{ request.path }}" name="next" />
+
+                <div id="facebook_login_js">
+                <input onclick="F.connect(this.parentNode.parentNode); return false;" type="image" src="{{ STATIC_URL }}img/facebook_login.png" />
+                <br />
+                (javascript popup)
+                </div>
+            </form>
+
+        </div>
+
+        {% endif %}
+
+        <div id="header_bar">
+
+        {% if user.is_authenticated %}
+            <h1>Welcome {{ user }}</h1><a href="{% url 'auth_logout' %}?next={{ request.path|urlencode }}">logout</a><br />
+
+            <table id="rounded-corner">
+                <thead>
+                    <tr>
+                        <th>Field</th>
+                        <th>Data</th>
+                    </tr>
+                </thead>
+                <tr>
+                    <td>First Name:</td><td>{{ user.first_name }}</td>
+                </tr>
+
+            </table>
+
+            <form action="{% url 'facebook_connect' %}?facebook_login=1" method="post">
+                <a href="javascript:void(0);" onclick="F.connect(this.parentNode);">Connect this account to Facebook</a> (used to connect non facebook accounts)
+                <input type="hidden" value="{{ request.path }}" name="next" />
+                <input type="hidden" name="connect_facebook" value="1">
+                {% csrf_token %}
+            </form>
+        {% endif %}
