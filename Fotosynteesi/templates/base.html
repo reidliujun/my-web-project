@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        {% load staticfiles %}
+        <link rel="stylesheet" href="{% static 'css/bootstrap.css' %}"/>
+        {% block head %}
+        {% endblock %}
+        <title>{% block title %}title0{% endblock %}</title>
+    </head>
+    <body>
+        {% block content %}
+        {% endblock %}
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    </body>
+</html>
