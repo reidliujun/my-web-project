@@ -9,7 +9,7 @@
 <div id= "login" class="container">
     <form class="form-signin" action="." method="post">{% csrf_token %}
         <h2 class="form-signin-heading">Sign in</h2>
-        <p class="text-danger">{{ message }}</p>
+        <p class="text-{{ style }}">{{ message }}</p>
         <input type="text" required class="input-block-level" placeholder="Username" name="username">
         <input type="password" required class="input-block-level" placeholder="Password" name="password">
         <button class="btn btn-large btn-primary" type="submit">Sign in</button>

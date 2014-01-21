@@ -15,6 +15,7 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
 TEMPLATE_DIRS = (os.path.join(BASE_DIR, 'templates'),)
 LOGIN_URL = '/login/'
+LOGOUT_URL = '/'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.6/howto/deployment/checklist/
@@ -23,7 +24,7 @@ LOGIN_URL = '/login/'
 SECRET_KEY = '*cf*b#+tv*)up1=i1^(l_oxg+%@#apu%su6yns_uga8fl@z%&w'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True # TODO: change to False
+DEBUG = True # TODO: change to False before going 'live'
 TEMPLATE_DEBUG = True
 ALLOWED_HOSTS = []
 
