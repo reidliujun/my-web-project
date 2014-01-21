@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block head %}Album project{% endblock %}
+
+<!-- {% block navbar-active-home %}active{% endblock %} -->
+
+{% block content %}
+
+	<div class="row">
+		<div class="col-lg-12">
+			<div class="page-header">
+			  <h1>Welcome to the Album project</h1>
+			</div>
+		<!-- List of uploaded images -->
+		{% if images %}
+			<ul>
+			{% for image in images %}
+				<li><a href="{{ image.imgfile.url }}">{{ image.imgfile.name }}</a></li>
+				<li><img src="{{ image.imgfile.url }}" height="40" width="40"></li>
+			{% endfor %}
+			</ul>
+		{% else %}
+			<p>No images.</p>
+		{% endif %}
+
+		<!-- Upload form. Note enctype attribute! -->
+		<form action="{% url "list" %}" method="post" enctype="multipart/form-data">
+			{% csrf_token %}
+			<p>{{ form.non_field_errors }}</p>
+			<p>{{ form.imgfile.label_tag }} {{ form.imgfile.help_text }}</p>
+			<p>
+				{{ form.imgfile.errors }}
+				{{ form.imgfile }}
+			</p>
+			<p><input type="submit" value="Upload" /></p>
+		</form>
+		
+		</div>
+	</div>
+{% endblock %}
