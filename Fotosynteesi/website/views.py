@@ -7,7 +7,11 @@ from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.contrib.auth.models import User
 from django.views.decorators.http import require_http_methods, require_GET
-
+from .forms import ImgForm
+from .models import Image
+from django.template import RequestContext
+from django.http import HttpResponseRedirect
+from django.core.urlresolvers import reverse
 
 from models import Album as Albumi
 @login_required
@@ -83,3 +87,30 @@ def log_out(request):
 # def home(request):
 #     if not request.user.is_authenticated():
 #         return redirect("/login/?next=%s" % request.path)
+
+# as in https://docs.djangoproject.com/en/dev/topics/http/file-uploads/
+def list(request):
+    # Handle file upload
+    if request.method == 'POST':
+        form = ImgForm(request.POST, request.FILES)
+        if form.is_valid():
+            #get the image object
+            newimg = Image(imgfile = request.FILES['imgfile'])
+            newtitle = request.FILES['imgfile'].name
+            newimg.title = newtitle.split('.')[0]
+            newimg.save()
+            
+            # Redirect to the images list after POST
+            return HttpResponseRedirect(reverse('website.views.list'))
+    else:
+        form = ImgForm() # A empty, unbound form
+
+    # Load images for the list page
+    images = Image.objects.all()
+
+    # Render list page with the images and the form
+    return render_to_response(
+        'list.html',
+        {'images': images, 'form': form},
+        context_instance=RequestContext(request)
+    )

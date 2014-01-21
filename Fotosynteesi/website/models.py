@@ -27,7 +27,13 @@ class Page(m.Model):
     number = m.PositiveSmallIntegerField()
 
 
-class Photo(m.Model):
+# class Photo(m.Model):
+#     album = m.ManyToManyField(Album)
+#     page = m.ManyToManyRel(Page)
+class Image(m.Model):
+    title = m.CharField(max_length=30)
+    imgfile = m.ImageField(upload_to='documents/%Y/%m/%d')
+    page = m.ManyToManyField(Page)
     album = m.ManyToManyField(Album)
-    page = m.ManyToManyRel(Page)
-
+    def __unicode__(self):
+        return self.title
