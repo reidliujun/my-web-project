@@ -1,0 +1,14 @@
+.albumnav{
+	float:left;
+	display:inline-block;
+}
+
+.fblogin {
+	float:right;
+	display:inline-block;
+}
+
+.facebook_login_redirect{
+	float:right;
+	display:inline-block;
+}

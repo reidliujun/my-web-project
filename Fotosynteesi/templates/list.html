@@ -1,8 +1,12 @@
 {% extends 'base.html' %}
 
-{% block head %}Album project{% endblock %}
+{% block head %}
+{% load staticfiles %}
+<link rel="stylesheet" href="{% static 'css/login.css' %}"/>
+{% endblock %}
 
-<!-- {% block navbar-active-home %}active{% endblock %} -->
+{% block title %}Image List{% endblock %}
+{% block navbar-active-home %}active{% endblock %}
 
 {% block content %}
 

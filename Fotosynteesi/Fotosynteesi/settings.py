@@ -18,7 +18,8 @@ LOGIN_URL = '/login/'
 LOGOUT_URL = '/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
-
+FACEBOOK_APP_ID = '506846786095181'
+FACEBOOK_APP_SECRET = 'ba60dc8ab335d3a14716bff4e4ee5983'
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.6/howto/deployment/checklist/
 
@@ -29,6 +30,26 @@ SECRET_KEY = '*cf*b#+tv*)up1=i1^(l_oxg+%@#apu%su6yns_uga8fl@z%&w'
 DEBUG = True # TODO: change to False before going 'live'
 TEMPLATE_DEBUG = True
 ALLOWED_HOSTS = []
+
+
+
+TEMPLATE_CONTEXT_PROCESSORS = (
+    'django.contrib.auth.context_processors.auth',
+    'django.core.context_processors.debug',
+    'django.core.context_processors.i18n',
+    'django.core.context_processors.media',
+    'django.core.context_processors.static',
+    'django.core.context_processors.request',
+    'django.contrib.messages.context_processors.messages',
+    'django_facebook.context_processors.facebook',
+)
+
+AUTHENTICATION_BACKENDS = (
+    'django_facebook.auth_backends.FacebookBackend',
+    'django.contrib.auth.backends.ModelBackend',
+)
+AUTH_USER_MODEL = 'auth.User'
+AUTH_PROFILE_MODULE = 'member.UserProfile'
 
 # Application definition
 
@@ -41,6 +62,8 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'website',
     'django.contrib.admin',
+    'django_facebook',
+    'member',
 )
 
 MIDDLEWARE_CLASSES = (

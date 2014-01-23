@@ -47,7 +47,8 @@ def log_user_in(request):
     if user is not None:
         if user.is_active:
             login(request, user)
-            return redirect('/')
+            # return redirect('/list/')
+            return HttpResponseRedirect(reverse('website.views.list'))
         else:
             return HttpResponse(render(request, "login.html", {"style": "danger",
                                                                "message": "This account has been disabled."}),
@@ -69,7 +70,7 @@ def register(request):
 @require_http_methods(['GET', 'POST'])
 def log_in(request):
     if request.user.is_authenticated():
-        return redirect('/')
+        return redirect('/home/')
     elif request.method == 'POST':
         return log_user_in(request)
     else:
