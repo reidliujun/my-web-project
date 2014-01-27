@@ -3,18 +3,43 @@
 {% block head %}
 {% load staticfiles %}
 <link rel="stylesheet" href="{% static 'css/login.css' %}"/>
-{% endblock %}
-{% block title %}Login Page{% endblock %}
+{% endblock head %}
+{% block title %}Login Page{% endblock title %}
 
 {% block content %}
-<div id= "login" class="container">
-    <form class="form-signin" action="." method="post">{% csrf_token %}
-        <h2 class="form-signin-heading">Sign in</h2>
-        <p class="text-{{ style }}">{{ message }}</p>
-        <input type="text" required class="input-block-level" placeholder="Username" name="username">
-        <input type="password" required class="input-block-level" placeholder="Password" name="password">
-        <button class="btn btn-large btn-primary" type="submit">Sign in</button>
-        <br><br><a href='/register/'>Don't have an account yet?</a>
-    </form>
+
+<div id="login-wrapper" class="wrapper">
+    <div class="outer">
+        <div id="fslogin" class="inner">
+            <form class="form-signin" action="." method="post">{% csrf_token %}
+                <h2 class="form-signin-heading">Sign in</h2>
+                <p class="text-{{ style|default:'info' }}">{{ message|default:'Sign in using your Fotosynteesi credentials.' }}</p>
+                <input type="text" required class="input-block-level" placeholder="Username" name="username">
+                <input type="password" required class="input-block-level" placeholder="Password" name="password">
+                <button class="btn btn-large btn-primary" type="submit">Sign in</button>
+                <br><br><a href='/register/'>Don't have an account yet?</a>
+            </form>
+        </div>
+    </div>
+
+    <div id="outer-or-box">
+        <div id="inner-or-box">
+            <p>- or -</p>
+        </div>
+    </div>
+
+    <div class="outer">
+        <div id="fblogin" class="inner">
+            <!--form to call registration via facebook -->
+            <form action="{% url 'facebook_connect' %}" method="post">
+                {% csrf_token %}
+                <div id="facebook_login_redirect">
+                    <input type="image" src="{% static 'django_facebook/images/facebook_login.png' %}"/>
+                </div>
+            </form>
+        </div>
+    </div>
+
 </div>
-{% endblock %}
+
+{% endblock content %}
