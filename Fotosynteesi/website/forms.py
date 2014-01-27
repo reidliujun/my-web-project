@@ -1,6 +1,5 @@
 from django import forms
 
 class ImgForm(forms.Form):
-    imgfile = forms.ImageField(
-        label='Select a image'
-    )
+    imgfile = forms.ImageField(label='')
+

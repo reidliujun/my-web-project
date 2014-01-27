@@ -6,39 +6,54 @@
 {% endblock %}
 
 {% block title %}Image List{% endblock %}
-{% block navbar-active-home %}active{% endblock %}
+{% block navbar-active-photo %}active{% endblock %}
 
 {% block content %}
 
 	<div class="row">
 		<div class="col-lg-12">
-			<div class="page-header">
+<!-- 			<div class="page-header">
 			  <h1>Welcome to the Album project</h1>
-			</div>
+			</div> -->
 		<!-- List of uploaded images -->
-		{% if images %}
-			<ul>
-			{% for image in images %}
-				<li><a href="{{ image.imgfile.url }}">{{ image.imgfile.name }}</a></li>
-				<li><img src="{{ image.imgfile.url }}" height="40" width="40"></li>
-			{% endfor %}
-			</ul>
-		{% else %}
-			<p>No images.</p>
-		{% endif %}
+<!-- Upload form. Note enctype attribute! -->
 
-		<!-- Upload form. Note enctype attribute! -->
-		<form action="{% url "list" %}" method="post" enctype="multipart/form-data">
-			{% csrf_token %}
-			<p>{{ form.non_field_errors }}</p>
-			<p>{{ form.imgfile.label_tag }} {{ form.imgfile.help_text }}</p>
-			<p>
-				{{ form.imgfile.errors }}
-				{{ form.imgfile }}
-			</p>
-			<p><input type="submit" value="Upload" /></p>
-		</form>
+<!-- 			<div class="imageadd">
+				<form action="{% url "list" %}" method="post" enctype="multipart/form-data">
+					{% csrf_token %}
+					<p>{{ form.non_field_errors }}</p>
+					<p>{{ form.imgfile.label_tag }} {{ form.imgfile.help_text }}</p>
+
+					<p id='choosebtn'>
+						{{ form.imgfile.errors }}
+						{{ form.imgfile }}
+					</p>
+					<p id='addbtn'><input type="submit" value="Add" /></p>
+				</form>
+			</div> -->
+
+			<div class="album-wrapper">
+				{% if images %}
+					<ul class="album-grid">
+					{% for image in images %}
+		<!-- 				<li><a href="{{ image.imgfile.url }}">{{ image.imgfile.name }}</a></li> -->
+						<li>
+							<a href="{{ image.imgfile.url }}">
+								<img src="{{ image.imgfile.url }}" height="180" width="240">
+							</a>
+						</li>
+					{% endfor %}
+					</ul>
+				{% else %}
+					<p>No images.</p>
+				{% endif %}
+			</div>
+
+
+		
 		
 		</div>
-	</div>
+
+
+		</div>
 {% endblock %}
