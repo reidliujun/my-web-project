@@ -21,15 +21,11 @@ def home(request):
     user = request.user
     msg = "hello %s, this is a test." % user.username
     try:
-        album_objects = Albumi.objects.get(user=user)
-        album_titles = [Album.title for Album in Albumi.objects.get(user=user)]
+        # album_objects = Albumi.objects.get(user=user)
+        album_titles = [Album.title for Album in Albumi.objects.filter(user=user)]
     except ObjectDoesNotExist:
         album_titles = None
-    return HttpResponse(render_to_response("album.html", {"albums": album_titles}))
-
-
-def home2(request):
-    return render_to_response('home.html', context_instance=RequestContext(request))
+    return HttpResponse(content=render(request, "album.html", {"albums": album_titles}))
 
 
 def order(request):
@@ -102,8 +98,12 @@ def log_out(request):
 #     if not request.user.is_authenticated():
 #         return redirect("/login/?next=%s" % request.path)
 
+
 # as in https://docs.djangoproject.com/en/dev/topics/http/file-uploads/
-def list(request):
+from django.db import OperationalError
+
+
+def list(request):  # TODO: should be refactored
     # Handle file upload
     # if request.method == 'POST':
     #     # form = ImgForm(request.POST, request.FILES)
@@ -115,18 +115,21 @@ def list(request):
     #     return HttpResponseRedirect(reverse('website.views.list'))
 
     # Load images for the list page
-    images = Image.objects.filter(user=request.user)
+    try:
+        images = Image.objects.filter(user=request.user)
+    except OperationalError:
+        render_to_response("Serious problem.")
 
     # Render list page with the images and the form
     return render_to_response(
         'list.html', {'images': images}, context_instance=RequestContext(request))
 
 
-def album(request):
-    albums = Album.objects.filter(user = request.user)
-    # images = Image.objects.filter(album = albums)
-    return render_to_response(
-        'album.html', {'albums': albums}, context_instance=RequestContext(request))
+# def album(request):
+#     albums = Album.objects.filter(user = request.user)
+#     # images = Image.objects.filter(album = albums)
+#     return render_to_response(
+#         'album.html', {'albums': albums}, context_instance=RequestContext(request))
 
 
 def album_form(request):
@@ -144,11 +147,14 @@ def album_form(request):
     albums = Album.objects.filter(user=request.user)
 
     return render_to_response(
-        'albumform.html',{'albums': albums}, context_instance=RequestContext(request))
+        'albumform.html', {'albums': albums}, context_instance=RequestContext(request))
 
 
 def albumdetail(request, albumtitle):
-    albums = Album.objects.get(user=request.user, title=albumtitle)
+    try:
+        albums = Album.objects.get(user=request.user, title=albumtitle)
+    except ObjectDoesNotExist:
+        render_to_response("No good.")
     if request.method == 'POST':
         form = ImgForm(request.POST, request.FILES)
         if form.is_valid():
@@ -165,7 +171,7 @@ def albumdetail(request, albumtitle):
             newimg.album.add(albums)
             
             # Redirect to the images list after POST
-            return HttpResponseRedirect(reverse('website.views.albumdetail', args=(albums.title)))
+            return HttpResponseRedirect(reverse('website.views.albumdetail', args=albums.title))
     else:
         form = ImgForm() # A empty, unbound form
 

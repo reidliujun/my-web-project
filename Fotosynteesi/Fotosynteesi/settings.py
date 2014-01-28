@@ -27,7 +27,7 @@ FACEBOOK_APP_SECRET = 'ba60dc8ab335d3a14716bff4e4ee5983'
 SECRET_KEY = '*cf*b#+tv*)up1=i1^(l_oxg+%@#apu%su6yns_uga8fl@z%&w'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True # TODO: change to False before going 'live'
+DEBUG = True  # TODO: change to False before going 'live'
 TEMPLATE_DEBUG = True
 ALLOWED_HOSTS = []
 
@@ -69,7 +69,7 @@ INSTALLED_APPS = (
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    # 'django.middleware.csrf.CsrfViewMiddleware', TODO: uncomment this
+    # 'django.middleware.csrf.CsrfViewMiddleware',  # TODO: uncomment this
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',

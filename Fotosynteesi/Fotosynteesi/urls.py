@@ -14,16 +14,17 @@ urlpatterns = patterns('',
     url(r'^register/$', 'website.views.register', name='register'),
     # url(r'^album/.{20}$', 'website.views.?', name='?'), # share/collaborate
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^home/$', 'website.views.home', name='home'),
+    url(r'^home/$', 'website.views.home', name='album'),
+    url(r'^home/$', 'website.views.home', name='album'),
+    url(r'^album/$', 'website.views.home', name='album'),
     url(r'^facebook/', include('django_facebook.urls')),
     url(r'^accounts/', include('django_facebook.auth_urls')),
     url(r'^album_form/', 'website.views.album_form', name='album_form'),
     url(r'^album/(?P<albumtitle>\w+)', 'website.views.albumdetail', name='albumdetail'),
-    url(r'^album/', 'website.views.album', name='album'),
 
     
 
     url(r'^photo/$', 'website.views.list', name='list'),
     url(r'^order/$', 'website.views.order', name='order'),
-    url(r'^$', RedirectView.as_view(url='/home/')),
+    url(r'^$', RedirectView.as_view(url='/album/')),
 )+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
