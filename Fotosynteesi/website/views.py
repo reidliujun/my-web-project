@@ -14,17 +14,23 @@ from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 
 from models import Album as Albumi
+from django.core.exceptions import ObjectDoesNotExist
+
 @login_required
-def index(request):
+def home(request):
     user = request.user
     msg = "hello %s, this is a test." % user.username
-    album_objects = Albumi.objects.get(user=user)
-    album_titles = [Album.title for Album in album_objects]
-    return HttpResponse("albums.html", album_titles)
+    try:
+        album_objects = Albumi.objects.get(user=user)
+        album_titles = [Album.title for Album in Albumi.objects.get(user=user)]
+    except ObjectDoesNotExist:
+        album_titles = None
+    return HttpResponse(render_to_response("album.html", {"albums": album_titles}))
 
 
-def home(request):
+def home2(request):
     return render_to_response('home.html', context_instance=RequestContext(request))
+
 
 def order(request):
     return render_to_response('order.html', context_instance=RequestContext(request))

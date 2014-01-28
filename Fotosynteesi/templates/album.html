@@ -2,11 +2,10 @@
 
 {% block head %}
 {% load staticfiles %}
-<link rel="stylesheet" href="{% static 'css/login.css' %}"/>
-{% endblock %}
+{% endblock head %}
 
-{% block title %}Album List{% endblock %}
-{% block navbar-active-album %}active{% endblock %}
+{% block title %}Album List{% endblock title %}
+{% block navbar-active-album %}active{% endblock navbar-active-album %}
 
 {% block content %}
 
@@ -66,4 +65,4 @@
 
 
 	</div>
-{% endblock %}
+{% endblock content %}
