@@ -4,7 +4,6 @@
         <meta charset="utf-8">
         {% load staticfiles %}
         <link rel="stylesheet" href="{% static 'css/normalize.css' %}"/>
-        <link rel="stylesheet" href="{% static 'css/absolute-center.css' %}"/>
         <link rel="stylesheet" href="{% static 'css/bootstrap.css' %}"/>
         <link rel="stylesheet" href="{% static 'css/album.css' %}"/>
         <link rel="stylesheet" href="{% static 'css/flickr.css' %}"/>
@@ -28,13 +27,11 @@
                     </ul>
                     <ul class="nav navbar-nav navbar-right">
                         {% if user.is_authenticated %}
-                                <li class="{% block log-in-auth %}{% endblock %}"><a href="/login/">{{ user.username }}</a></li>
+                        <li class="{% block log-in-auth %}{% endblock %}"><a href="/login/">{{ user.username }}</a></li>
                         {% else %}
-                                <li class="{% block log-in %}{% endblock %}"><a href="/login/">LOGIN</a></li>
+                        <li class="{% block log-in %}{% endblock %}"><a href="/login/">LOGIN</a></li>
                         {% endif %}
-
                         <li class="{% block log-out %}{% endblock %}"><a href="/logout/">LOGOUT</a></li>
-
                     </ul>
                 </div>
             </div><!-- /.navbar-collapse -->
