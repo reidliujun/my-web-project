@@ -147,30 +147,30 @@ The app will consist of four separate pages (login, album selection, album brows
 - *app.host.tld/order_id/.{20}$* will check string for the collaboration or share strings, if it matches, do the required action (add user as album owner or just show album in browse mode), otherwise to the login screen with an error
 
 
-## Implementation Order (now: dec 13, week 50; due: feb 14, week 7)
+## Implementation Order (now: jan 28, week 5; due: feb 14, week 7 - **17 days remaining**)
 
-1. Database/models functionality. (weeks 51 - 2)
+1. Database/models functionality. (week 5)
 
-2. Views. (weeks 51 - 3)
+2. Views. (week 5 - 6)
 
-3. Basic UI functionality (album browsing, album editing). (week 51 - 3)
+3. Public link generation. (week 5 - 6)
 
-4. Authentication. (week 2)
+4. Ordering function. (week 5- 6)
 
-5. UI honing. (week 2)
+5. Third party photo import. (week 5 - 6)
 
-6. Public link generation. (week 2 - 3)
+6. Basic UI functionality (album browsing, album editing). (week 7)
 
-7. Share on third party service. (week 2 - 3)
+7. Authentication. (week 7, mostly done as is)
 
-8. Ordering function. (week 3)
+8. Third party login. (status of this?)
 
-9. Third party photo import. (week 4)
+9. UI honing. (week 7)
 
-10. Third party login. (week 4)
+10. Share on third party service. (week 7)
 
-11. Testing/tweaking. (week 5)
+11. Testing/tweaking. (week 7)
 
 
-Will maybe add pictures/mockups. We have some. :)
+Will maybe (but maybe not) add pictures/mockups. We have some. :)
 
