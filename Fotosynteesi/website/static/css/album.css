@@ -1,3 +1,14 @@
+/*body {
+
+}*/
+.collapse{
+	width:1200px;
+	margin:0 auto;
+}
+.container{
+	width:1200px;
+	margin:0 auto;
+}
 .albumnav{
 	float:left;
 	display:inline-block;
@@ -6,9 +17,59 @@
 .fblogin {
 	float:right;
 	display:inline-block;
+	margin-left: 8px;
+	margin-top: 11px;
+
 }
 
 .facebook_login_redirect{
 	float:right;
 	display:inline-block;
+}
+
+
+
+.album-wrapper{
+	clear:both;
+	float:left;
+}
+.album-grid li{
+	float:left;
+	display:block;
+	overflow:hidden;
+	border: 5px solid #fff;
+	margin: 7px;
+	height: 180px;
+	width: 240px;
+}
+.albumdetail{
+	float:left;
+	display:block;
+	margin: 7px;
+	height: 180px;
+	width: 240px;
+	margin-bottom:50px;
+}
+
+.imageadd{
+	float:left;
+	display:inline-block;
+	margin-bottom:40px;
+}
+
+
+#choosebtn{
+	float:left;
+	display:inline-block;
+	margin-left:47px;
+}
+#addbtn{
+	float:left;
+	display:inline-block;
+}
+
+.albumlist{
+	clear:both;
+	float:left;
+	display:inline;
 }

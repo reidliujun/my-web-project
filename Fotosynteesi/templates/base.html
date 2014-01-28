@@ -7,36 +7,33 @@
         <link rel="stylesheet" href="{% static 'css/absolute-center.css' %}"/>
         <link rel="stylesheet" href="{% static 'css/bootstrap.css' %}"/>
         <link rel="stylesheet" href="{% static 'css/album.css' %}"/>
+        <link rel="stylesheet" href="{% static 'css/flickr.css' %}"/>
         {% block head %}
         {% endblock %}
         <title>{% block title %}{% endblock %}</title>
     </head>
     <body>
-        <!-- Navigation -->
+         <!-- Navigation -->
         <nav class="navbar navbar-default" role="navigation">
             <!-- Collect the nav links, forms, and other content for toggling -->
             <div class="collapse navbar-collapse navbar-ex1-collapse">
                 <div class="albumnav">
                     <ul class="nav navbar-nav">
-                        <li class="{% block navbar-active-home %}{% endblock %}"><a href="/home/">Home</a></li>
-
-                        {% if user.username %}
-
-                        <li class="{% block log-in-auth %}{% endblock %}"><a href="/login/">{{ user.username }}</a></li>
-
+                        <li class="{% block navbar-active-home %}{% endblock %}"><a href="/home/">HOME</a></li>
+                        {% if user.is_authenticated %}
+                        <li class="{% block navbar-active-album %}{% endblock %}"><a href="/album/">ALBUM</a></li>
+                        <li class="{% block navbar-active-photo %}{% endblock %}"><a href="/photo/">PHOTO</a></li>
+                        <li class="{% block navbar-active-order %}{% endblock %}"><a href="/order/">ORDER</a></li>
+                        {% endif %}
+                    </ul>
+                    <ul class="nav navbar-nav navbar-right">
+                        {% if user.is_authenticated %}
+                                <li class="{% block log-in-auth %}{% endblock %}"><a href="/login/">{{ user.username }}</a></li>
                         {% else %}
-
-                        <li class="{% block log-in %}{% endblock %}"><a href="/login/">Login</a></li>
-
+                                <li class="{% block log-in %}{% endblock %}"><a href="/login/">LOGIN</a></li>
                         {% endif %}
 
-                        <li class="{% block log-out %}{% endblock %}"><a href="/logout/">Logout</a></li>
-
-                        {% if not user.is_authenticated %}
-
-
-
-                        {% endif %}
+                        <li class="{% block log-out %}{% endblock %}"><a href="/logout/">LOGOUT</a></li>
 
                     </ul>
                 </div>
@@ -46,5 +43,6 @@
             {% block content %}{% endblock %}
         </div>
         <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+        <script type="text/javascript" src="{% static 'js/flickr.js' %}"></script>
     </body>
 </html>

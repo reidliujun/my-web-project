@@ -8,6 +8,8 @@ class Album(m.Model):
     public_url_suffix = m.CharField(max_length=255)
     collaboration_url_suffix = m.CharField(max_length=255)
     user = m.ManyToManyField(User)
+    def __unicode__(self):
+        return self.title
 
 
 class Order(m.Model):
@@ -19,6 +21,8 @@ class Order(m.Model):
     order_status = m.CharField(max_length=255) # need to think about this
     order_time = m.DateTimeField(default=False)
     shipping_time = m.DateTimeField()
+    # def __unicode__(self):
+    #     return self.user
 
 
 class Page(m.Model):
@@ -33,7 +37,8 @@ class Page(m.Model):
 class Image(m.Model):
     title = m.CharField(max_length=30)
     imgfile = m.ImageField(upload_to='documents/%Y/%m/%d')
-    page = m.ManyToManyField(Page)
+    # page = m.ManyToManyField(Page)
+    user = m.ManyToManyField(User)
     album = m.ManyToManyField(Album)
     def __unicode__(self):
         return self.title

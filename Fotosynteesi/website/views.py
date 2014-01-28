@@ -7,8 +7,8 @@ from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.contrib.auth.models import User
 from django.views.decorators.http import require_http_methods, require_GET
-from .forms import ImgForm
-from .models import Image
+from .forms import *
+from .models import *
 from django.template import RequestContext
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
@@ -21,6 +21,13 @@ def index(request):
     album_objects = Albumi.objects.get(user=user)
     album_titles = [Album.title for Album in album_objects]
     return HttpResponse("albums.html", album_titles)
+
+
+def home(request):
+    return render_to_response('home.html', context_instance=RequestContext(request))
+
+def order(request):
+    return render_to_response('order.html', context_instance=RequestContext(request))
 
 
 def create_user(request):
@@ -48,7 +55,7 @@ def log_user_in(request):
         if user.is_active:
             login(request, user)
             # return redirect('/list/')
-            return HttpResponseRedirect(reverse('website.views.list'))
+            return HttpResponseRedirect(reverse('website.views.home'))
         else:
             return HttpResponse(render(request, "login.html", {"style": "danger",
                                                                "message": "This account has been disabled."}),
@@ -92,6 +99,50 @@ def log_out(request):
 # as in https://docs.djangoproject.com/en/dev/topics/http/file-uploads/
 def list(request):
     # Handle file upload
+    # if request.method == 'POST':
+    #     # form = ImgForm(request.POST, request.FILES)
+    #     # if form.is_valid():
+    #         #get the image object
+    #     imageList = Image.objects.filter(user=request.user)
+
+    #     # Redirect to the images list after POST
+    #     return HttpResponseRedirect(reverse('website.views.list'))
+
+    # Load images for the list page
+    images = Image.objects.filter(user=request.user)
+
+    # Render list page with the images and the form
+    return render_to_response(
+        'list.html', {'images': images}, context_instance=RequestContext(request))
+
+
+def album(request):
+    albums = Album.objects.filter(user = request.user)
+    # images = Image.objects.filter(album = albums)
+    return render_to_response(
+        'album.html', {'albums': albums}, context_instance=RequestContext(request))
+
+
+def album_form(request):
+    if request.method == 'POST':
+        #get the album object
+        newalbum = Album(title = request.POST['title'])
+        newalbum.public_url_suffix = 'http://www.google.com'
+        newalbum.collaboration_url_suffix = 'http://www.google.com'
+        
+        #get the user object
+        newalbum.save()
+        user = User.objects.get(username=request.user.username)
+        newalbum.user.add(user)
+        return HttpResponseRedirect(reverse('website.views.album_form'))
+    albums = Album.objects.filter(user=request.user)
+
+    return render_to_response(
+        'albumform.html',{'albums': albums}, context_instance=RequestContext(request))
+
+
+def albumdetail(request, albumtitle):
+    albums = Album.objects.get(user=request.user, title=albumtitle)
     if request.method == 'POST':
         form = ImgForm(request.POST, request.FILES)
         if form.is_valid():
@@ -100,18 +151,19 @@ def list(request):
             newtitle = request.FILES['imgfile'].name
             newimg.title = newtitle.split('.')[0]
             newimg.save()
+
+            #add user
+            user = User.objects.get(username=request.user.username)
+            
+            newimg.user.add(user)
+            newimg.album.add(albums)
             
             # Redirect to the images list after POST
-            return HttpResponseRedirect(reverse('website.views.list'))
+            return HttpResponseRedirect(reverse('website.views.albumdetail', args=(albums.title)))
     else:
         form = ImgForm() # A empty, unbound form
 
     # Load images for the list page
-    images = Image.objects.all()
-
-    # Render list page with the images and the form
+    images = Image.objects.filter(album=albums)
     return render_to_response(
-        'list.html',
-        {'images': images, 'form': form},
-        context_instance=RequestContext(request)
-    )
+        'albumdetail.html', {'images': images, 'albums': albums, 'form': form}, context_instance=RequestContext(request))

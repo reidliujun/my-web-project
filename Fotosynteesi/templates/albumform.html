@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block head %}
+{% load staticfiles %}
+<link rel="stylesheet" href="{% static 'css/login.css' %}"/>
+{% endblock %}
+
+{% block title %}Album List{% endblock %}
+{% block navbar-active-album %}active{% endblock %}
+
+{% block content %}
+
+	<div class="row">
+		<div class="col-lg-12">
+
+
+			<div class="albumadd">
+				<form action="{% url "album_form" %}" method="post" enctype="multipart/form-data">
+					{% csrf_token %}
+					<LABEL for="title">title: </LABEL>
+              		<INPUT type="text" name="title" id="title">
+					<p id='addbtn'><input type="submit" value="Add" /></p>
+				</form>
+			</div>
+
+			{% if albums %}
+				<ul class="album-grid">
+				{% for album in albums %}
+					<p>
+						{{album.title}}
+					</p>
+				{% endfor %}
+				</ul>
+			{% else %}
+					<p>No albums.</p>
+			{% endif %}
+		
+		
+		
+		</div>
+
+
+	</div>
+{% endblock %}
