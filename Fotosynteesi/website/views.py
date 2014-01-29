@@ -136,9 +136,7 @@ def album_form(request):
     if request.method == 'POST':
         #get the album object
         newalbum = Album(title = request.POST['title'])
-        newalbum.public_url_suffix = 'http://www.google.com'
-        newalbum.collaboration_url_suffix = 'http://www.google.com'
-        
+
         #get the user object
         newalbum.save()
         user = User.objects.get(username=request.user.username)
@@ -152,9 +150,12 @@ def album_form(request):
 
 def albumdetail(request, albumtitle):
     try:
-        albums = Album.objects.get(user=request.user, title=albumtitle)
+        # albums = Album.objects.get(user=request.user, title=albumtitle)
+        current_album = Albumi.objects.get(user=request.user)  # , title=albumtitle)
     except ObjectDoesNotExist:
         render_to_response("No good.")
+    if current_album.title != albumtitle:
+        raise IntegrityError
     if request.method == 'POST':
         form = ImgForm(request.POST, request.FILES)
         if form.is_valid():
@@ -168,14 +169,14 @@ def albumdetail(request, albumtitle):
             user = User.objects.get(username=request.user.username)
             
             newimg.user.add(user)
-            newimg.album.add(albums)
+            newimg.album.add(current_album)
             
             # Redirect to the images list after POST
-            return HttpResponseRedirect(reverse('website.views.albumdetail', args=albums.title))
+            return HttpResponseRedirect(reverse('website.views.albumdetail', args=current_album.title))
     else:
         form = ImgForm() # A empty, unbound form
 
     # Load images for the list page
-    images = Image.objects.filter(album=albums)
+    images = Image.objects.filter(album=current_album)
     return render_to_response(
-        'albumdetail.html', {'images': images, 'albums': albums, 'form': form}, context_instance=RequestContext(request))
+        'albumdetail.html', {'images': images, 'albums': current_album, 'form': form}, context_instance=RequestContext(request))
