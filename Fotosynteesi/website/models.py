@@ -5,8 +5,8 @@ from django.contrib.auth.models import User
 
 class Album(m.Model):
     title = m.CharField(max_length=255)
-    public_url_suffix = m.CharField(max_length=255)
-    collaboration_url_suffix = m.CharField(max_length=255)
+    public_url_suffix = m.CharField(blank=True, max_length=255)
+    collaboration_url_suffix = m.CharField(blank=True, max_length=255)
     user = m.ManyToManyField(User)
     def __unicode__(self):
         return self.title
@@ -18,7 +18,7 @@ class Order(m.Model):
     street_address = m.CharField(max_length=255)
     post_code_and_city = m.CharField(max_length=255)
     country = m.CharField(max_length=255)
-    order_status = m.CharField(max_length=255) # need to think about this
+    order_status = m.CharField(max_length=255)  # need to think about this
     order_time = m.DateTimeField(default=False)
     shipping_time = m.DateTimeField()
     # def __unicode__(self):
