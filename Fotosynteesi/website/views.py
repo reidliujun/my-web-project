@@ -15,6 +15,8 @@ from django.core.urlresolvers import reverse
 
 from models import Album as Albumi
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Max
+
 
 @login_required
 def home(request):
@@ -59,12 +61,12 @@ def log_user_in(request):
             # return redirect('/list/')
             return HttpResponseRedirect(reverse('website.views.home'))
         else:
-            return HttpResponse(render(request, "login.html", {"style": "danger",
-                                                               "message": "This account has been disabled."}),
+            return HttpResponse(render(request, "login.html",
+                {"style": "danger", "message": "This account has been disabled."}),
                                 status=410)
     else:
-        return HttpResponse(content=render(request, 'login.html', {"style": "danger",
-                                                                   "message": "Invalid username or password."}),
+        return HttpResponse(content=render(request, 'login.html', 
+            {"style": "danger", "message": "Invalid username or password."}),
                             status=401)
 
 
@@ -89,8 +91,8 @@ def log_in(request):
 @require_GET
 def log_out(request):
     logout(request)
-    return HttpResponse(content=render(request, 'login.html', {"style": "success",
-                                                               "message": "You have successfully signed out."}))
+    return HttpResponse(content=render(request, 'login.html', 
+        {"style": "success","message": "You have successfully signed out."}))
 
 # def login
 #
@@ -103,7 +105,7 @@ def log_out(request):
 from django.db import OperationalError
 
 
-def list(request):  # TODO: should be refactored
+def photo(request):  # TODO: should be refactored
     # Handle file upload
     # if request.method == 'POST':
     #     # form = ImgForm(request.POST, request.FILES)
@@ -122,7 +124,8 @@ def list(request):  # TODO: should be refactored
 
     # Render list page with the images and the form
     return render_to_response(
-        'list.html', {'images': images}, context_instance=RequestContext(request))
+        'photo.html', {'images': images}, 
+        context_instance=RequestContext(request))
 
 
 # def album(request):
@@ -135,8 +138,10 @@ def list(request):  # TODO: should be refactored
 def album_form(request):
     if request.method == 'POST':
         #get the album object
-        newalbum = Album(title=request.POST['title'])
-
+        newalbum = Album(title = request.POST['title'])
+        newalbum.public_url_suffix = 'http://www.google.com'
+        newalbum.collaboration_url_suffix = 'http://www.google.com'
+        
         #get the user object
         newalbum.save()
         user = User.objects.get(username=request.user.username)
@@ -176,4 +181,109 @@ def albumdetail(request, albumtitle):
     # Load images for the list page
     images = Image.objects.filter(album=albums)
     return render_to_response(
-        'albumdetail.html', {'images': images, 'albums': albums, 'form': form}, context_instance=RequestContext(request))
+        'albumdetail.html', 
+        {'images': images, 'albums': albums, 'form': form}, 
+        context_instance=RequestContext(request))
+
+
+def album_delete(request, albumtitle):
+    try:
+        album = Album.objects.filter(user=request.user, title=albumtitle)
+        images = Image.objects.filter(album=album)
+    except ObjectDoesNotExist:
+        render_to_response("No good.")
+    # for image in images:
+    images.delete()
+    album.delete()
+    return HttpResponseRedirect(reverse('website.views.home'))
+    
+
+def album_page(request, albumtitle):
+    try:
+        album = Album.objects.get(user=request.user, title=albumtitle)
+    except ObjectDoesNotExist:
+        render_to_response("No good.")
+
+    pages = Page.objects.filter(album=album)
+    if not pages:
+        next_page = 1
+    else:
+        page_number=Page.objects.filter(album=album).aggregate(Max('number'))['number__max']
+        next_page = page_number+1
+    return render_to_response(
+        'album_page.html', {'album': album, 'pages': pages, 'next_page': next_page}, context_instance=RequestContext(request))
+
+
+def page_layout(request, albumtitle, pagenumber):
+    try:
+        album = Album.objects.get(user=request.user, title=albumtitle)
+        # pages = Page.objects.filter(album=album)
+    except ObjectDoesNotExist:
+        render_to_response("No good.")
+
+    page = Page.objects.create(album=album, number=pagenumber, layout=1)
+
+
+    return render_to_response(
+        'page_layout.html', {'album': album, 'page': page}, context_instance=RequestContext(request))
+
+
+def photoadd(request, albumtitle, pagenumber, layoutstyle):
+    try:
+        album = Album.objects.get(user=request.user, title=albumtitle)
+        page = Page.objects.get(album=album, number=pagenumber)
+
+    except ObjectDoesNotExist:
+        render_to_response("No good.")
+
+    page.layout = layoutstyle
+
+    if request.method == 'POST':
+
+        #get the image object
+        newimg = Image(imgfile = request.FILES['imgfile'])
+        newtitle = request.FILES['imgfile'].name
+        newimg.title = newtitle.split('.')[0]
+        newimg.save()
+
+        #add user
+        user = User.objects.get(username=request.user.username)
+        newimg.user.add(user)
+        newimg.album.add(album)
+        newimg.page.add(page)
+        # Redirect to the images list after POST
+        return HttpResponseRedirect(reverse('website.views.photoadd', 
+            kwargs={'albumtitle':album.title, 'pagenumber': page.number, 'layoutstyle':page.layout}))
+
+    images = Image.objects.filter(album=album,page=page)
+
+    return render_to_response(
+        'photoadd.html', {'images': images, 'album': album, 'page': page}, 
+        context_instance=RequestContext(request))
+
+
+def page_detail(request, albumtitle, pagenumber):
+    try:
+        album = Album.objects.get(user=request.user, title=albumtitle)
+        # pages = Page.objects.filter(album=album)
+    except ObjectDoesNotExist:
+        render_to_response("No good.")
+
+    page = Page.objects.filter(album=album, number=pagenumber)
+    images = Image.objects.filter(user=request.user, album=album, page=page)
+
+    return render_to_response(
+        'page_detail.html', {'album': album, 'page': page, 'images': images}, context_instance=RequestContext(request))
+
+
+def page_delete(request, albumtitle, pagenumber):
+    try:
+        album = Album.objects.get(user=request.user, title=albumtitle)
+        page = Page.objects.filter(album=album, number=pagenumber)
+        images = Image.objects.filter(user=request.user, album=album, page=page)
+    except ObjectDoesNotExist:
+        render_to_response("No good.")
+    # for image in images:
+    images.delete()
+    page.delete()
+    return HttpResponseRedirect(reverse('website.views.album_page', kwargs={'albumtitle':album.title}))

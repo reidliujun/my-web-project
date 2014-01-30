@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block head %}
+{% load staticfiles %}
+<link rel="stylesheet" href="{% static 'css/login.css' %}"/>
+{% endblock %}
+
+{% block title %}Photo List{% endblock %}
+{% block navbar-active-album %}active{% endblock %}
+
+{% block content %}
+
+	<div class="row">
+		<div class="col-lg-12">
+<!-- 			<div class="page-header">
+			  <h1>Welcome to the Album project</h1>
+			</div> -->
+		<!-- List of uploaded images -->
+<!-- Upload form. Note enctype attribute! -->
+
+			<div class="imageadd">
+
+					<form action="{% url "photoadd" album.title page.number page.layout%}" method="post" enctype="multipart/form-data">
+						{% csrf_token %}
+						<p>Select a photo: <input type="file" accept="image" name="imgfile" size="40"> </p>
+						<div>
+						
+						<input type="submit" value="Add">
+						
+						</div>
+					</form>
+
+				
+			</div>
+
+			<div class="album-wrapper">
+				{% if images %}
+					<ul class="album-grid">
+					{% for image in images %}
+		<!-- 				<li><a href="{{ image.imgfile.url }}">{{ image.imgfile.name }}</a></li> -->
+						<li>
+							<a href="{{ image.imgfile.url }}">
+								<img src="{{ image.imgfile.url }}" height="180" width="240">
+							</a>
+						</li>
+					{% endfor %}
+					</ul>
+				{% else %}
+					<p>No images.</p>
+				{% endif %}
+			</div>
+
+		
+		
+		</div>
+
+
+		</div>
+{% endblock %}

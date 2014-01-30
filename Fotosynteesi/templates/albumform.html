@@ -18,12 +18,12 @@
 				<form action="{% url "album_form" %}" method="post" enctype="multipart/form-data">
 					{% csrf_token %}
 					<LABEL for="title">title: </LABEL>
-              		<INPUT type="text" name="title" id="title">
+              		<INPUT type="text" name="title" id="title" required>
 					<p id='addbtn'><input type="submit" value="Add" /></p>
 				</form>
 			</div>
 
-			{% if albums %}
+		<!-- 	{% if albums %}
 				<ul class="album-grid">
 				{% for album in albums %}
 					<p>
@@ -33,7 +33,7 @@
 				</ul>
 			{% else %}
 					<p>No albums.</p>
-			{% endif %}
+			{% endif %} -->
 		
 		
 		

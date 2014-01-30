@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block head %}
+{% load staticfiles %}
+<link rel="stylesheet" href="{% static 'css/login.css' %}"/>
+{% endblock %}
+
+{% block title %}Image List{% endblock %}
+{% block navbar-active-album %}active{% endblock %}
+
+{% block content %}
+
+	<div class="row">
+		<div class="col-lg-12">
+
+
+			<div class="album-wrapper">
+				{% if images %}
+					<ul class="album-grid">
+					{% for image in images %}
+		<!-- 				<li><a href="{{ image.imgfile.url }}">{{ image.imgfile.name }}</a></li> -->
+						<li>
+							<a href="{{ image.imgfile.url }}">
+								<img src="{{ image.imgfile.url }}" height="180" width="240">
+							</a>
+						</li>
+					{% endfor %}
+					</ul>
+				{% else %}
+					<p>No images.</p>
+				{% endif %}
+			</div>
+
+		
+		
+		</div>
+
+
+		</div>
+{% endblock %}

@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 from django.db import models as m
 from django.contrib.auth.models import User
+from django.db.models.signals import pre_delete
+from django.dispatch.dispatcher import receiver
 
 
 class Album(m.Model):
     title = m.CharField(max_length=255)
-    public_url_suffix = m.CharField(blank=True, max_length=255)
-    collaboration_url_suffix = m.CharField(blank=True, max_length=255)
+    public_url_suffix = m.CharField(max_length=255)
+    collaboration_url_suffix = m.CharField(max_length=255)
     user = m.ManyToManyField(User)
     def __unicode__(self):
         return self.title
@@ -29,7 +31,8 @@ class Page(m.Model):
     album = m.ForeignKey(Album)
     layout = m.PositiveSmallIntegerField()
     number = m.PositiveSmallIntegerField()
-
+    def __unicode__(self):
+        return "Album:" + self.album.title + "; Page:" + str(self.number)
 
 # class Photo(m.Model):
 #     album = m.ManyToManyField(Album)
@@ -37,8 +40,16 @@ class Page(m.Model):
 class Image(m.Model):
     title = m.CharField(max_length=30)
     imgfile = m.ImageField(upload_to='documents/%Y/%m/%d')
-    # page = m.ManyToManyField(Page)
+    page = m.ManyToManyField(Page)
     user = m.ManyToManyField(User)
     album = m.ManyToManyField(Album)
     def __unicode__(self):
         return self.title
+
+    def delete(self, *args, **kwargs):
+        # get the page and storage before delete
+        storage, path = self.imgfile.storage, self.imgfile.path
+        # Delete the model before the file
+        super(Image, self).delete(*args, **kwargs)
+        # Delete the imagefile after the model
+        storage.delete(path)
