@@ -13,7 +13,6 @@ from django.template import RequestContext
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 
-from models import Album as Albumi
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Max
 
@@ -23,11 +22,11 @@ def home(request):
     user = request.user
     msg = "hello %s, this is a test." % user.username
     try:
-        # album_objects = Albumi.objects.get(user=user)
-        album_titles = [Album.title for Album in Albumi.objects.filter(user=user)]
+        albums = Album.objects.filter(user=user)
+        # album_titles = [Album.title for Album in Albumi.objects.filter(user=user)]
     except ObjectDoesNotExist:
-        album_titles = None
-    return HttpResponse(content=render(request, "album.html", {"albums": album_titles}))
+        albums = None
+    return HttpResponse(content=render(request, "album.html", {"albums": albums}))
 
 
 def order(request):
