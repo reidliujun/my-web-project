@@ -62,11 +62,18 @@ urlpatterns = patterns('',
     url(r'^album/(?P<albumtitle>\w+)/page/(?P<pagenumber>\d{1,3})/delete/', 'website.views.page_delete', name='page_delete'),
 
     url(r'^album/delete/(?P<albumtitle>\w+)', 'website.views.album_delete', name='album_delete'),
+
+    url(r'^album/(?P<albumtitle>\w+)/order/$', 'website.views.album_order', name='album_order'),
+
+    url(r'^album/(?P<albumtitle>\w+)/submit/$', 'website.views.order_submit', name='order_submit'),
+    url(r'^album/(?P<albumtitle>\w+)/paysuccess$', 'website.views.paysuccess', name='paysuccess'),
+    url(r'^album/(?P<albumtitle>\w+)/paycancel$', 'website.views.paycancel', name='paycancel'),
+    url(r'^album/(?P<albumtitle>\w+)/payerror$', 'website.views.payerror', name='payerror'),
     
     url(r'^album/(?P<albumtitle>\w+)/$', 'website.views.album_page', name='album_page'),
 
     # url(r'^page/$', 'website.views.page', name='page'),
     url(r'^photo/$', 'website.views.photo', name='photo'),
-    url(r'^order/$', 'website.views.order', name='order'),
+    url(r'^order/$', 'website.views.order_detail', name='order_detail'),
     url(r'^$', RedirectView.as_view(url='/album/')),
 )+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

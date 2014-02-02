@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block head %}
+{% load staticfiles %}
+<link rel="stylesheet" href="{% static 'css/login.css' %}"/>
+{% endblock %}
+
+{% block title %}Album List{% endblock %}
+{% block navbar-active-album %}active{% endblock %}
+
+{% block content %}
+
+	<div class="row">
+		<div class="col-lg-12">
+
+
+			<div class="albumorder">
+				<h4>Money to be paid:<br>
+					{{order.amount}}€!!
+				</h4>
+				<form action="http://payments.webcourse.niksula.hut.fi/pay/" method="post" enctype="multipart/form-data">
+					
+					{% if order  %}
+					{% csrf_token %}
+					<input type="hidden" name="pid" value="{{order.pid}}" id="pid" />
+					<input type="hidden" name="sid" value="{{order.sid}}"  id="sid" />
+					<input type="hidden" name="amount" value="{{order.amount}}" id="amount" />
+					<input type="hidden" name="success_url" value="{{order.success_url}}" id="success_url" />
+					<input type="hidden" name="cancel_url" value="{{order.cancel_url}}" id="cancel_url" />
+					<input type="hidden" name="error_url" value="{{order.error_url}}" id="error_url" />
+					<input type="hidden" name="checksum" value="{{order.checksum}}" id="checksum" />
+					
+					<input type="submit" value="Click to pay!"/>
+					{% endif %}
+
+				</form>
+			</div>
+
+		<!-- 	{% if albums %}
+				<ul class="album-grid">
+				{% for album in albums %}
+					<p>
+						{{album.title}}
+					</p>
+				{% endfor %}
+				</ul>
+			{% else %}
+					<p>No albums.</p>
+			{% endif %} -->
+		
+		
+		
+		</div>
+
+
+	</div>
+{% endblock %}

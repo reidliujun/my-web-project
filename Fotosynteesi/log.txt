@@ -14,3 +14,16 @@ add delete in class Page (delete the file in the media root when models delete)
 b. views.py:
 change ‘list’ to ‘photo’
 
+2.2.2014
+
+1. in templates
+add order and pay template page (without much view)
+
+2. in website
+a. models.py
+add order model fields
+b. views.py
+add order page, and payment page views, as well as payment security code generation method.
+c. in css, modify the css a little bit.
+
+

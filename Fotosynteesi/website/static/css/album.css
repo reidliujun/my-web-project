@@ -48,7 +48,7 @@
 	margin: 7px;
 	height: 180px;
 	width: 240px;
-	margin-bottom:50px;
+	margin-bottom:80px;
 }
 
 .imageadd{
@@ -73,3 +73,13 @@
 	float:left;
 	display:inline;
 }
+
+
+.albumdelet, .albumorder{
+
+	float:left;
+	display:inline;
+	margin-right: 10px;
+
+}
+

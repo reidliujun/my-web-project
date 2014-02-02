@@ -3,6 +3,7 @@ from django.db import models as m
 from django.contrib.auth.models import User
 from django.db.models.signals import pre_delete
 from django.dispatch.dispatcher import receiver
+import datetime
 
 
 class Album(m.Model):
@@ -16,15 +17,39 @@ class Album(m.Model):
 
 class Order(m.Model):
     user = m.ForeignKey(User)
-    name = m.CharField(max_length=255)
+    album = m.ForeignKey(Album)
+    firstname = m.CharField(max_length=255)
+    lastname = m.CharField(max_length=255)
     street_address = m.CharField(max_length=255)
     post_code_and_city = m.CharField(max_length=255)
     country = m.CharField(max_length=255)
-    order_status = m.CharField(max_length=255)  # need to think about this
-    order_time = m.DateTimeField(default=False)
-    shipping_time = m.DateTimeField()
+    # Payment id to identify this payment 
+    pid = m.CharField(max_length=255)
+    # sid = group42
+    sid = m.CharField(max_length=255)
+    number = m.CharField(max_length=255)
+    amount = m.CharField(max_length=255)
+    success_url = m.CharField(max_length=255, blank=True, null=True)
+    cancel_url = m.CharField(max_length=255, blank=True, null=True)
+    error_url = m.CharField(max_length=255, blank=True, null=True)
+    checksum = m.CharField(max_length=255)
+    # order_status = m.CharField(max_length=255) # need to think about this
+    # order_time = m.DateTimeField()
+    order_time = m.DateTimeField('Order date', default = datetime.datetime.now)
+    receive_time = m.DateTimeField('receive date', default=datetime.datetime.now()+datetime.timedelta(days=10))
     # def __unicode__(self):
     #     return self.user
+    def __unicode__(self):
+        return "Order:" + self.user.username + ";" 
+
+    # calculate the sumsecurity for payment system
+    def checksumfunc(self):
+        import md5
+        checksumstr = "pid="+self.pid+"&sid="+self.sid+"&amount="+self.amount+"&token=01d46c1d7f4cbe9686f7d1d8aec559d6" 
+        mm = md5.new(checksumstr)
+        self.checksum = mm.hexdigest()
+        return self.checksum
+
 
 
 class Page(m.Model):

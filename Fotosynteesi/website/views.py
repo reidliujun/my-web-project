@@ -15,7 +15,7 @@ from django.core.urlresolvers import reverse
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Max
-
+import datetime
 
 @login_required
 def home(request):
@@ -145,11 +145,11 @@ def album_form(request):
         newalbum.save()
         user = User.objects.get(username=request.user.username)
         newalbum.user.add(user)
-        return HttpResponseRedirect(reverse('website.views.album_form'))
+        return HttpResponseRedirect(reverse('website.views.home'))
     albums = Album.objects.filter(user=request.user)
 
     return render_to_response(
-        'albumform.html', {'albums': albums}, context_instance=RequestContext(request))
+        'albumform.html', context_instance=RequestContext(request))
 
 
 def albumdetail(request, albumtitle):
@@ -173,7 +173,8 @@ def albumdetail(request, albumtitle):
             newimg.album.add(albums)
             
             # Redirect to the images list after POST
-            return HttpResponseRedirect(reverse('website.views.albumdetail', args=albums.title))
+            return HttpResponseRedirect(reverse('website.views.albumdetail', 
+                args=albums.title))
     else:
         form = ImgForm()  # A empty, unbound form
 
@@ -286,3 +287,70 @@ def page_delete(request, albumtitle, pagenumber):
     images.delete()
     page.delete()
     return HttpResponseRedirect(reverse('website.views.album_page', kwargs={'albumtitle':album.title}))
+
+
+
+def album_order(request, albumtitle):
+    try:
+        album = Album.objects.get(user=request.user, title=albumtitle)
+    except ObjectDoesNotExist:
+        render_to_response("No good.")
+
+
+    return render_to_response(
+        'album_order.html', {'album': album}, context_instance=RequestContext(request))
+
+
+def order_submit(request, albumtitle):
+    try:
+        album = Album.objects.get(user=request.user, title=albumtitle)
+    except ObjectDoesNotExist:
+        render_to_response("No good.")
+    if request.method == "POST":
+        ##set the new order object
+        neworder = Order.objects.create(user = request.user, firstname = request.POST.get('firstname', False),
+            lastname = request.POST.get('lastname', False), street_address = request.POST.get('street_address', False),
+            post_code_and_city = request.POST.get('post_code_and_city', False), country = request.POST.get('country', False), 
+            number = request.POST.get('number', False), sid = "group42", album= album)
+        # neworder = Order(album = album, user=request.user)
+
+        #set the pid for each independent order
+        # neworder.pid= "oktopay"
+
+        neworder.amount = str(10*int(neworder.number))
+        #use order_time as pid, then it will be unique to each pid.
+        neworder.pid = str(neworder.order_time)
+        neworder.checksum = neworder.checksumfunc()
+        neworder.success_url = "http://localhost.foo.fi:8000/album/"+album.title+"/paysuccess"
+        neworder.cancel_url = "http://localhost.foo.fi:8000/album/"+album.title+"/paycancel"
+        neworder.error_url = "http://localhost.foo.fi:8000/album/"+album.title+"/payerror"
+        neworder.save()
+        return render_to_response(
+            'order_submit.html', {'album': album, 'order':neworder}, context_instance=RequestContext(request))
+    else:
+        return render_to_response(
+            'album.html', context_instance=RequestContext(request))
+
+def paysuccess(request, albumtitle):
+    pid = request.GET['pid']
+    ref = request.GET['ref']
+    checksum = request.GET['checksum']
+
+    return render_to_response('paysuccess.html', {'pid':pid, 'ref':ref, 'checksum':checksum},
+        context_instance=RequestContext(request))
+
+
+def paycancel(request, albumtitle):
+    return HttpResponse("paycancel")
+
+def payerror(request, albumtitle):
+    return HttpResponse("payerror")
+
+def order_detail(request):
+    try:
+        orders = Order.objects.filter(user=request.user)
+        # pages = Page.objects.filter(album=album)
+    except ObjectDoesNotExist:
+        render_to_response("No good.")
+    return render_to_response('order_detail.html', {'orders':orders}, 
+        context_instance=RequestContext(request))

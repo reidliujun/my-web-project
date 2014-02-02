@@ -14,6 +14,7 @@
 
 
 			<div class="album-wrapper">
+				<h4>{{albums.title}}</h4>	
 				{% if albums %}
 					{% for album in albums %}
 				
@@ -23,21 +24,28 @@
 								<img class="setThumb" src="{% static 'images/scribble-photo-album-icon.png' %}" width="240" height="180" >
 							</a>
 						</div>
+						<div class="textlist">
+							<div class="setText">													
 
-						<div class="setText">													
+								<a class="Seta"  href="/album/{{album.title}}" title={{album.title}} style="height:100%">
+									<h4>{{album.title}}</h4>		
+								</a>
+			<!-- 					<ul class="sets-cta">
+								<li><a href="#" data-setId="72157640089485324" class="bookmakerIcon" title="Make a book!">Make a book</a></li>
+								</ul> -->
+							</div>
+								
+							<div class="albumdelet">
+								<a class="delete"  href="/album/delete/{{album.title}}" title="delete" style="height:100%">
+									<h4>delete</h4>		
+								</a>
+							</div>
 
-							<a class="Seta"  href="" title={{album.title}} style="height:100%">
-								<h4>{{album.title}}</h4>		
-							</a>
-		<!-- 					<ul class="sets-cta">
-							<li><a href="#" data-setId="72157640089485324" class="bookmakerIcon" title="Make a book!">Make a book</a></li>
-							</ul> -->
-						</div>
-							
-						<div class="albumdelet">
-							<a class="delete"  href="/album/delete/{{album.title}}" title="delete" style="height:100%">
-								<h4>delete</h4>		
-							</a>
+							<div class="albumorder">
+								<a class="order"  href="/album/{{album.title}}/order" title="order" style="height:100%">
+									<h4>order</h4>		
+								</a>
+							</div>
 						</div>
 
 					</div>

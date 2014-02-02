@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block head %}
+{% load staticfiles %}
+<link rel="stylesheet" href="{% static 'css/login.css' %}"/>
+{% endblock %}
+
+{% block title %}Order List{% endblock %}
+{% block navbar-active-order %}active{% endblock %}
+
+{% block content %}
+
+	<div class="row">
+		<div class="col-lg-12">
+
+
+			<div class="order-wrapper">
+				{% if orders %}
+					<ul class="order-grid">
+					{% for order in orders %}
+		<!-- 				<li><a href="{{ image.imgfile.url }}">{{ image.imgfile.name }}</a></li> -->
+						<li>
+							<p> Order time: {{order.order_time}}; 
+								Receive time: {{order.receive_time}};
+								Order number : {{order.number}};
+								Pay: {{order.amount}};
+							</p>
+						</li>
+					{% endfor %}
+					</ul>
+				{% else %}
+					<p>No orders.</p>
+				{% endif %}
+			</div>
+	
+		</div>
+
+
+		</div>
+{% endblock %}

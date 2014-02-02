@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block head %}
+{% load staticfiles %}
+<link rel="stylesheet" href="{% static 'css/login.css' %}"/>
+{% endblock %}
+
+{% block title %}Album List{% endblock %}
+{% block navbar-active-album %}active{% endblock %}
+
+{% block content %}
+
+	<div class="row">
+		<div class="col-lg-12">
+
+
+			<div class="albumorder">
+				<form action="{% url "order_submit" albumtitle=album.title%}" method="post" enctype="multipart/form-data">
+					
+					{% csrf_token %}
+					
+					<p><label for="first_name">Firstname:</label> <input type="text" name="firstname" value="Jun" id="first_name" /></p>
+					<p><label for="last_name">Lastname:</label> <input type="text" name="lastname" value="Liu" id="last_name" /></p>
+					<p><label for="street_address">Street Address:</label> <input type="text" name="street_address" value="JMT 10E" id="street_address" /></p>
+					<p><label for="post_code_and_city">Post code and city:</label> <input type="text" name="post_code_and_city" value="02150, ESPOO" id="post_code_and_city" /></p>
+					<p><label for="country">Country:</label> <input type="text" name="country" value="Finland" id="country" /></p>
+					<p><label for="number">Number of order:</label> <input type="text" name="number" value="10" id="number" /></p>
+					<input type="submit" value="Order"/>
+
+
+				</form>
+			</div>
+
+		<!-- 	{% if albums %}
+				<ul class="album-grid">
+				{% for album in albums %}
+					<p>
+						{{album.title}}
+					</p>
+				{% endfor %}
+				</ul>
+			{% else %}
+					<p>No albums.</p>
+			{% endif %} -->
+		
+		
+		
+		</div>
+
+
+	</div>
+{% endblock %}
