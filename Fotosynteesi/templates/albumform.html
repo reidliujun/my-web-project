@@ -15,11 +15,13 @@
 
 
 			<div class="albumadd">
-				<form action="{% url "album_form" %}" method="post" enctype="multipart/form-data">
+				<form role="form" action="{% url "album_form" %}" method="post" enctype="multipart/form-data">
 					{% csrf_token %}
-					<LABEL for="title">title: </LABEL>
-              		<INPUT type="text" name="title" id="title" required>
-					<p id='addbtn'><input type="submit" value="Add" /></p>
+					<div class="form-group">
+					    <label for="inputtitlename">Input title name:</label>
+					    <input type="text" class="form-control" name="title" id="title" required placeholder="Enter Album Title">
+					</div>
+					<input class="btn btn-default" type="submit" value="Add" /></p>
 				</form>
 			</div>
 

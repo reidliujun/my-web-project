@@ -76,4 +76,6 @@ urlpatterns = patterns('',
     url(r'^photo/$', 'website.views.photo', name='photo'),
     url(r'^order/$', 'website.views.order_detail', name='order_detail'),
     url(r'^$', RedirectView.as_view(url='/album/')),
+    url(r'^facebook_post/(?P<albumtitle>\w+)/$', 'website.views.facebook_post', name='facebook_post'),
+    
 )+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

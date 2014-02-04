@@ -27,3 +27,15 @@ add order page, and payment page views, as well as payment security code generat
 c. in css, modify the css a little bit.
 
 
+4.2.2014
+
+1. launch share on facebook function
+a. By using the django_facebook api, it is quite simple to post the message on the user's facebook wall.
+Just need to get the 'graph' with the request.
+
+b. Once the share succeed, then it will go to post_succeed.html page, and wait 2 senconds and return to the homepage of the website.
+
+c. Mainly add the view and url file to launch the share function
+
+2. Modified template class to use the bootstrap css and make the webpage look a bit nicer. :)
+ mainly modified the class of "form", "button" and "thumbnail" (the class of tag <a> of to show the image on screen). 

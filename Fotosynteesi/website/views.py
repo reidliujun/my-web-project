@@ -16,6 +16,10 @@ from django.core.urlresolvers import reverse
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Max
 import datetime
+from django_facebook.api import get_persistent_graph, require_persistent_graph
+from django_facebook.decorators import facebook_required_lazy, facebook_required
+from django_facebook.utils import next_redirect, parse_signed_request
+from django.contrib import messages
 
 @login_required
 def home(request):
@@ -354,3 +358,22 @@ def order_detail(request):
         render_to_response("No good.")
     return render_to_response('order_detail.html', {'orders':orders}, 
         context_instance=RequestContext(request))
+
+
+@facebook_required(scope='publish_stream')
+@csrf_protect
+def facebook_post(request,graph,albumtitle):
+    # try:
+    try:
+        album=Album.objects.get(user=request.user, title=albumtitle)
+    except ObjectDoesNotExist:
+        render_to_response("album share error!")
+    message = album.public_url_suffix
+    if message:
+        graph.set('me/feed', message=message)
+        messages.info(request, 'Posted the message to your wall')
+        # return next_redirect(request)
+        # return HttpResponseRedirect(reverse('album'))
+        # return HttpResponseRedirect("post success!")
+        return render_to_response('post_succeed.html')
+    return HttpResponse("post error")

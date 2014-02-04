@@ -1,0 +1,22 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+      <title>Post to facebook wall</title>
+  </head>
+  <body>
+
+    <div class="post_wall">
+      <p>Share on facebook succeed!!</p>
+      <a id="link" href="{% url 'album' %} ">Go To Homepage!!!</a>
+    </div>
+
+    <script type="text/javascript">
+      window.setTimeout(function() {
+        location.href = document.getElementsByClassName("post_wall")[0].getElementsByTagName("a")[0].href;
+        }, 2000);
+    </script>
+  </body>
+
+</html>
+          

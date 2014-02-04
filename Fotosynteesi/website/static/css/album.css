@@ -75,11 +75,20 @@
 }
 
 
-.albumdelet, .albumorder{
+.albumdelet, .albumorder, .albumshare{
 
 	float:left;
 	display:inline;
-	margin-right: 10px;
+	margin-right: 15px;
 
 }
 
+.form-control {
+	width: 400px;
+}
+.list-group-item{
+	width:600px;
+}
+.form-signin .form-control {
+	width: 200px;
+}

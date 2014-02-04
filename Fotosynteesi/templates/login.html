@@ -13,9 +13,12 @@
         <div id="fslogin" class="inner">
             <form class="form-signin" action="{% url "login" %}" method="post">{% csrf_token %}
                 <h2 class="form-signin-heading">Sign in</h2>
-                <p class="text-{{ style|default:'info' }}">{{ message|default:'Sign in using your Fotosynteesi credentials.' }}</p>
-                <input type="text" required class="input-block-level" placeholder="Username" name="username">
-                <input type="password" required class="input-block-level" placeholder="Password" name="password">
+<!--                 <p class="text-{{ style|default:'info' }}">{{ message|default:'Sign in using your Fotosynteesi credentials.' }}</p> -->
+                <input type="text" required class="form-control" placeholder="Username" name="username">
+                <input type="password" required class="form-control" placeholder="Password" name="password">
+                <label class="checkbox">
+                  <input type="checkbox" value="remember-me"> Remember me
+                </label>
                 <button class="btn btn-large btn-primary" type="submit">Sign in</button>
                 <br><br><a href='/register/'>Don't have an account yet?</a>
             </form>

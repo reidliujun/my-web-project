@@ -20,14 +20,15 @@
 
 			<div class="imageadd">
 
-					<form action="{% url "photoadd" album.title page.number page.layout%}" method="post" enctype="multipart/form-data">
+					<form role="form" action="{% url "photoadd" album.title page.number page.layout%}" method="post" enctype="multipart/form-data">
 						{% csrf_token %}
-						<p>Select a photo: <input type="file" accept="image" name="imgfile" size="40"> </p>
-						<div>
-						
-						<input type="submit" value="Add">
-						
+						<div class="form-group">
+						    <label for="selectphoto">Select a photo: </label>
+						    <input type="file" id="exampleInputFile" accept="image" name="imgfile" size="40">
+						    <br>
+						    <input class="btn btn-default" type="submit" value="Add">
 						</div>
+
 					</form>
 
 				
