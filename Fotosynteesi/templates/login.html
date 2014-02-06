@@ -13,7 +13,7 @@
         <div id="fslogin" class="inner">
             <form class="form-signin" action="{% url "login" %}" method="post">{% csrf_token %}
                 <h2 class="form-signin-heading">Sign in</h2>
-<!--                 <p class="text-{{ style|default:'info' }}">{{ message|default:'Sign in using your Fotosynteesi credentials.' }}</p> -->
+                <p class="text-{{ style|default:'info' }}">{{ message|default:'Sign in using your Fotosynteesi credentials.' }}</p>
                 <input type="text" required class="form-control" placeholder="Username" name="username">
                 <input type="password" required class="form-control" placeholder="Password" name="password">
                 <label class="checkbox">
