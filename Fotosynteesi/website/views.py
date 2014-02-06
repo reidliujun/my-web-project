@@ -1,8 +1,8 @@
-from django.shortcuts import render, redirect, render_to_response
+from django.shortcuts import render, redirect, render_to_response, get_object_or_404, get_list_or_404
 from django.core.context_processors import csrf
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect,  HttpResponseServerError
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.contrib.auth.models import User
@@ -10,7 +10,6 @@ from django.views.decorators.http import require_http_methods, require_GET
 from .forms import *
 from .models import *
 from django.template import RequestContext
-from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -157,10 +156,7 @@ def album_form(request):
 
 
 def albumdetail(request, albumtitle):
-    try:
-        albums = Album.objects.get(user=request.user, title=albumtitle)
-    except ObjectDoesNotExist:
-        render_to_response("No good.")
+    albums=get_object_or_404(Album,user=request.user, title=albumtitle)
     if request.method == 'POST':
         form = ImgForm(request.POST, request.FILES)
         if form.is_valid():
@@ -191,11 +187,8 @@ def albumdetail(request, albumtitle):
 
 
 def album_delete(request, albumtitle):
-    try:
-        album = Album.objects.filter(user=request.user, title=albumtitle)
-        images = Image.objects.filter(album=album)
-    except ObjectDoesNotExist:
-        render_to_response("No good.")
+    album = Album.objects.filter(user=request.user, title=albumtitle)
+    images = Image.objects.filter(album=album)
     # for image in images:
     images.delete()
     album.delete()
@@ -203,11 +196,7 @@ def album_delete(request, albumtitle):
     
 
 def album_page(request, albumtitle):
-    try:
-        album = Album.objects.get(user=request.user, title=albumtitle)
-    except ObjectDoesNotExist:
-        render_to_response("No good.")
-
+    album=get_object_or_404(Album,user=request.user, title=albumtitle)
     pages = Page.objects.filter(album=album)
     if not pages:
         next_page = 1
@@ -219,12 +208,7 @@ def album_page(request, albumtitle):
 
 
 def page_layout(request, albumtitle, pagenumber):
-    try:
-        album = Album.objects.get(user=request.user, title=albumtitle)
-        # pages = Page.objects.filter(album=album)
-    except ObjectDoesNotExist:
-        render_to_response("No good.")
-
+    album=get_object_or_404(Album,user=request.user, title=albumtitle)
     page = Page.objects.create(album=album, number=pagenumber, layout=1)
 
 
@@ -233,13 +217,8 @@ def page_layout(request, albumtitle, pagenumber):
 
 
 def photoadd(request, albumtitle, pagenumber, layoutstyle):
-    try:
-        album = Album.objects.get(user=request.user, title=albumtitle)
-        page = Page.objects.get(album=album, number=pagenumber)
-
-    except ObjectDoesNotExist:
-        render_to_response("No good.")
-
+    album=get_object_or_404(Album,user=request.user, title=albumtitle)
+    page=get_object_or_404(Page, album=album, number=pagenumber)
     page.layout = layoutstyle
 
     if request.method == 'POST':
@@ -267,12 +246,7 @@ def photoadd(request, albumtitle, pagenumber, layoutstyle):
 
 
 def page_detail(request, albumtitle, pagenumber):
-    try:
-        album = Album.objects.get(user=request.user, title=albumtitle)
-        # pages = Page.objects.filter(album=album)
-    except ObjectDoesNotExist:
-        render_to_response("No good.")
-
+    album=get_object_or_404(Album,user=request.user, title=albumtitle)
     page = Page.objects.filter(album=album, number=pagenumber)
     images = Image.objects.filter(user=request.user, album=album, page=page)
 
@@ -281,13 +255,9 @@ def page_detail(request, albumtitle, pagenumber):
 
 
 def page_delete(request, albumtitle, pagenumber):
-    try:
-        album = Album.objects.get(user=request.user, title=albumtitle)
-        page = Page.objects.filter(album=album, number=pagenumber)
-        images = Image.objects.filter(user=request.user, album=album, page=page)
-    except ObjectDoesNotExist:
-        render_to_response("No good.")
-    # for image in images:
+    album=get_object_or_404(Album,user=request.user, title=albumtitle)
+    page = Page.objects.filter(album=album, number=pagenumber)
+    images = Image.objects.filter(user=request.user, album=album, page=page)
     images.delete()
     page.delete()
     return HttpResponseRedirect(reverse('website.views.album_page', kwargs={'albumtitle':album.title}))
@@ -295,21 +265,13 @@ def page_delete(request, albumtitle, pagenumber):
 
 
 def album_order(request, albumtitle):
-    try:
-        album = Album.objects.get(user=request.user, title=albumtitle)
-    except ObjectDoesNotExist:
-        render_to_response("No good.")
-
-
+    album=get_object_or_404(Album,user=request.user, title=albumtitle)
     return render_to_response(
         'album_order.html', {'album': album}, context_instance=RequestContext(request))
 
 
 def order_submit(request, albumtitle):
-    try:
-        album = Album.objects.get(user=request.user, title=albumtitle)
-    except ObjectDoesNotExist:
-        render_to_response("No good.")
+    album=get_object_or_404(Album,user=request.user, title=albumtitle)
     if request.method == "POST":
         ##set the new order object
         neworder = Order.objects.create(user = request.user, firstname = request.POST.get('firstname', False),
@@ -351,11 +313,7 @@ def payerror(request, albumtitle):
     return HttpResponse("payerror")
 
 def order_detail(request):
-    try:
-        orders = Order.objects.filter(user=request.user)
-        # pages = Page.objects.filter(album=album)
-    except ObjectDoesNotExist:
-        render_to_response("No good.")
+    orders = Order.objects.filter(user=request.user)
     return render_to_response('order_detail.html', {'orders':orders}, 
         context_instance=RequestContext(request))
 
@@ -363,11 +321,7 @@ def order_detail(request):
 @facebook_required(scope='publish_stream')
 @csrf_protect
 def facebook_post(request,graph,albumtitle):
-    # try:
-    try:
-        album=Album.objects.get(user=request.user, title=albumtitle)
-    except ObjectDoesNotExist:
-        render_to_response("album share error!")
+    album=get_object_or_404(Album,user=request.user, title=albumtitle)
     message = album.public_url_suffix
     if message:
         graph.set('me/feed', message=message)
