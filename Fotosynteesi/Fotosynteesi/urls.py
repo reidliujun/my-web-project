@@ -48,6 +48,7 @@ urlpatterns = patterns('',
     
     url(r'^album_form/', 'website.views.album_form', name='album_form'),
     
+    url(r'^public/(?P<albumurl>\w+)/$', 'website.views.publicalbum', name='publicalbum'),
     url(r'^album/(?P<albumtitle>\w+)/page/(?P<pagenumber>\d{1,3})/layout/(?P<layoutstyle>\d{1})/$', 
         'website.views.photoadd', name='photoadd'),
 

@@ -331,3 +331,10 @@ def facebook_post(request,graph,albumtitle):
         # return HttpResponseRedirect("post success!")
         return render_to_response('post_succeed.html')
     return HttpResponse("post error")
+
+
+def publicalbum(request,albumurl):
+    my_public_url_suffix = "http://localhost.foo.fi:8000/public/"+albumurl
+    album = get_object_or_404(Album,public_url_suffix=my_public_url_suffix)
+    pages = Page.objects.filter(album=album)
+    return render_to_response('public_album.html', {'pages':pages})

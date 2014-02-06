@@ -1,0 +1,42 @@
+{% extends 'public_base.html' %}
+
+{% block head %}
+{% load staticfiles %}
+{% endblock head %}
+
+{% block title %}Page List{% endblock title %}
+
+{% block content %}
+
+			<div class="row">
+				{% if pages %}
+					{% for page in pages %}
+				
+					<div class="col-xs-6 col-md-3">
+						<div class="setLinkDiv">
+							<a class="thumbnail" href=".">
+								<img class="setThumb" src="{% static 'images/scribble-photo-album-icon.png' %}" width="240" height="180" >
+							</a>
+						</div>
+
+						<div class="setText">
+															
+							<a class="Seta"  href="/album/{{album.title}}/page/{{page.number}}" style="height:100%">
+								<h4>Page: {{page.number}}</h4>		
+							</a>
+						</div>
+							
+
+					</div>
+					{% endfor %}
+				
+					
+				{% endif %}		
+				
+
+
+			</div>
+		
+		
+
+{% endblock content %}
