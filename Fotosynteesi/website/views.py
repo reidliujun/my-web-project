@@ -33,13 +33,16 @@ def home(request):
         albums = Album.objects.filter(user=user)
     except ObjectDoesNotExist:
         albums = None
+    template = "album.html"
     params = {"albums": albums}
-    return HttpResponse(content=render(request, "album.html", params))
+    return HttpResponse(content=render(request, template, params))
 
 
 def order(request):
     """Appears deprecated. """
-    return render_to_response('order.html', context_instance=RequestContext(request))
+
+    template = "order.html"
+    return render(request, template)
 
 
 def create_user(request):
@@ -48,24 +51,25 @@ def create_user(request):
     password = request.POST['password']
     retyped_password = request.POST['retypedPassword']
     if password != retyped_password:
+        template = "register.html"
         params = {"style": "danger",
                   "message": "Passwords do not match."}
-        return HttpResponse(render_to_response("register.html", params))
+        return HttpResponse(render_to_response(template, params))
     else:
         try:
             # only to check for availability
             u = User.objects.create_user(username=username, password=password)
             return log_user_in(request)
         except IntegrityError:
+            template = "register.html"
             params = {"style": "danger",
                       "message": "Chosen username is not available."}
-            return HttpResponse(render_to_response("register.html", params))
+            return HttpResponse(render(request, template, params))
 
 
 # as in https://docs.djangoproject.com/en/1.6/topics/auth/default/
 def log_user_in(request):
-    """
-    Attempts to sign the user in with the credentials the user has provided.
+    """Attempts to sign the user in with the credentials they have provided.
     Returns the user back to the sign in page and displays an appropriate
     warning if the sign in is unsuccessful.
     """
@@ -73,6 +77,7 @@ def log_user_in(request):
     username = request.POST['username']
     password = request.POST['password']
     user = authenticate(username=username, password=password)
+    template = "login.html"
     if user is not None:
         if user.is_active:
             login(request, user)
@@ -80,42 +85,58 @@ def log_user_in(request):
         else:
             params = {"style": "danger",
                       "message": "This account has been disabled."}
-            page = render(request, "login.html", params)
+            page = render(request, template, params)
             return HttpResponse(content=page, status=410)
     else:
         params = {"style": "danger",
                   "message": "Invalid username and/or password."}
-        page = render(request, "login.html", params)
+        page = render(request, template, params)
         return HttpResponse(content=page, status=401)
 
 
 @require_http_methods(['GET', 'POST'])
 def register(request):
-    """Docstring goes here. """
+    """On POST -> create_user view. On GET -> registration page. """
+
     if request.method == 'POST':
         return create_user(request)
     elif request.method == 'GET':
-        return HttpResponse(render_to_response('register.html'))
+        template = "register.html"
+        return HttpResponse(render_to_response(template))
 
 
 @require_http_methods(['GET', 'POST'])
 def log_in(request):
-    """Docstring goes here. """
+    """Chooses action based on http method and user authentication.
+
+    Authenticated user -> Album view
+    Post method -> Login view
+    Get method -> Login page
+
+    """
+
     if request.user.is_authenticated():
-        return redirect('/home/')
+        return redirect('/home/')  # TODO: /home/ vs. /album/, remove one
     elif request.method == 'POST':
         return log_user_in(request)
     else:
-        return HttpResponse(render_to_response('login.html'))
+        template = "login.html"
+        return HttpResponse(render_to_response(template))
 
 
 @require_GET
 def log_out(request):
-    """Docstring goes here. """
-    logout(request)
-    params = {"style": "success",
-              "message": "You have successfully signed out."}
-    return HttpResponse(content=render(request, 'login.html', params))
+    """Signs user out, or tells them that they are already signed out. """
+
+    template = "login.html"
+    if request.user.is_authenticated():
+        logout(request)
+        params = {"style": "success",
+                  "message": "You have successfully signed out."}
+    else:
+        params = {"style": "info",
+                  "message": "You were not signed in."}
+    return HttpResponse(content=render(request, template, params))
 
 # def login
 #
@@ -148,9 +169,9 @@ def photo(request):  # TODO: should be refactored
         render_to_response("Serious problem.")
 
     # Render list page with the images and the form
-    return render_to_response(
-        'photo.html', {'images': images}, 
-        context_instance=RequestContext(request))
+    template = "photo.html"
+    params = {'images': images}
+    return render(request, template, params)
 
 # def album(request):
 #     albums = Album.objects.filter(user = request.user)
@@ -174,13 +195,14 @@ def album_form(request):
         return HttpResponseRedirect(reverse('website.views.home'))
     albums = Album.objects.filter(user=request.user)
 
-    return render_to_response(
-        'albumform.html', context_instance=RequestContext(request))
+    template = "albumform.html"
+    return render(request, template)
 
 
 def albumdetail(request, albumtitle):
     """ Docstring goes here. """
-    albums = get_object_or_404(Album,user=request.user, title=albumtitle)
+
+    albums = get_object_or_404(Album, user=request.user, title=albumtitle)
     if request.method == 'POST':
         form = ImgForm(request.POST, request.FILES)
         if form.is_valid():
@@ -205,9 +227,10 @@ def albumdetail(request, albumtitle):
 
     # Load images for the list page
     images = Image.objects.filter(album=albums)
+
+    template = "albumdetail.html"
     params = {'images': images, 'albums': albums, 'form': form}
-    return render_to_response(
-        'albumdetail.html', params, context_instance=RequestContext(request))
+    return render(request, template, params)
 
 
 def album_delete(request, albumtitle):
@@ -217,6 +240,7 @@ def album_delete(request, albumtitle):
     # for image in images:
     images.delete()
     album.delete()
+
     return HttpResponseRedirect(reverse('website.views.home'))
     
 
@@ -229,27 +253,26 @@ def album_page(request, albumtitle):
     else:
         page_objects = Page.objects.filter(album=album)
         page_number = page_objects.aggregate(Max('number'))['number__max']
-        next_page = page_number+1
+        next_page = page_number + 1
+
+    template = "album_page.html"
     params = {'album': album, 'pages': pages, 'next_page': next_page}
-    # http page to render, nothing to do with user pages
-    page = 'album_page.html', params
-    return render_to_response(page, context_instance=RequestContext(request))
+    return render(request, template, params)
 
 
 def page_layout(request, albumtitle, pagenumber):
     """ Docstring goes here. """
-    album=get_object_or_404(Album,user=request.user, title=albumtitle)
+    album = get_object_or_404(Album, user=request.user, title=albumtitle)
     alb_page = Page.objects.create(album=album, number=pagenumber, layout=1)
 
+    template = "page_layout.html"
     params = {'album': album, 'page': alb_page}
-    # page: http page to render, nothing to do with user pages
-    page = 'page_layout.html', params
-    return render_to_response(page, context_instance=RequestContext(request))
+    return render(request, template, params)
 
 
 def photoadd(request, albumtitle, pagenumber, layoutstyle):
     """Docstring goes here. """
-    album = get_object_or_404(Album,user=request.user, title=albumtitle)
+    album = get_object_or_404(Album, user=request.user, title=albumtitle)
     alb_page = get_object_or_404(Page, album=album, number=pagenumber)
     alb_page.layout = layoutstyle
 
@@ -275,10 +298,9 @@ def photoadd(request, albumtitle, pagenumber, layoutstyle):
 
     images = Image.objects.filter(album=album,page=alb_page)
 
+    template = "photoadd.html"
     params = {'images': images, 'album': album, 'page': alb_page}
-    # w3page: http page to render, nothing to do with user pages
-    w3page = 'photoadd.html', params
-    return render_to_response(w3page, context_instance=RequestContext(request))
+    return render(request, template, params)
 
 
 def page_detail(request, albumtitle, pagenumber):
@@ -287,9 +309,9 @@ def page_detail(request, albumtitle, pagenumber):
     page = Page.objects.filter(album=album, number=pagenumber)
     images = Image.objects.filter(user=request.user, album=album, page=page)
 
+    template = "page_detail.html"
     params = {'album': album, 'page': page, 'images': images}
-    w3page = 'page_detail.html', params
-    return render_to_response(w3page, context_instance=RequestContext(request))
+    return render_to_response(request, template, params)
 
 
 def page_delete(request, albumtitle, pagenumber):
@@ -300,19 +322,24 @@ def page_delete(request, albumtitle, pagenumber):
     images.delete()
     page.delete()
     viewname = 'website.views.album_page', "kwargs={'albumtitle':album.title}"
+
     return HttpResponseRedirect(reverse(viewname))
 
 
 def album_order(request, albumtitle):
     """Docstring goes here. """
+
     album = get_object_or_404(Album,user=request.user, title=albumtitle)
-    w3page = 'album_order.html', {'album': album}
-    return render_to_response(w3page, context_instance=RequestContext(request))
+
+    template = "album_order.html"
+    params = {'album': album}
+    return render(request, template, params)
 
 
 def order_submit(request, albumtitle):
     """Docstring goes here. """
-    album = get_object_or_404(Album,user=request.user, title=albumtitle)
+
+    album = get_object_or_404(Album, user=request.user, title=albumtitle)
     if request.method == "POST":
         # set the new order object
         neworder = Order.objects.create(
@@ -340,13 +367,13 @@ def order_submit(request, albumtitle):
         neworder.error_url = base + ":8000/album/"+album.title+"/payerror"
         neworder.save()
 
+        template = "order_submit.html"
         params = {'album': album, 'order': neworder}
-        w3page = 'order_submit.html', params
-        return render_to_response(
-            w3page, context_instance=RequestContext(request))
     else:
-        return render_to_response(
-            'album.html', context_instance=RequestContext(request))
+        template = "album.html"
+        params = {}
+
+    return render(request, template, params)
 
 
 def paysuccess(request, albumtitle):
@@ -355,55 +382,69 @@ def paysuccess(request, albumtitle):
     ref = request.GET['ref']
     checksum = request.GET['checksum']
 
+    template = "paysuccess.html"
     params = {'pid': pid, 'ref': ref, 'checksum': checksum}
-    w3page = 'paysuccess.html', params
-    return render_to_response(w3page, context_instance=RequestContext(request))
+
+    return render(request, template, params)
 
 
 def paycancel(request, albumtitle):
     """Docstring goes here. """
+
     return HttpResponse("paycancel")
 
 
 def payerror(request, albumtitle):
     """Docstring goes here. """
+
     return HttpResponse("payerror")
 
 
 def order_detail(request):
     """Docstring goes here. """
+
     orders = Order.objects.filter(user=request.user)
     params = {'orders': orders}
-    w3page = 'order_detail.html', params
-    return render_to_response(w3page, context_instance=RequestContext(request))
+
+    template = "order_detail.html"
+    return render(request, template, params)
 
 
 @facebook_required(scope='publish_stream')
 @csrf_protect
 def facebook_post(request, graph, albumtitle):
     """Docstring goes here. """
-    album=get_object_or_404(Album,user=request.user, title=albumtitle)
+
+    album = get_object_or_404(Album, user=request.user, title=albumtitle)
     message = album.public_url_suffix
     if message:
         graph.set('me/feed', message=message)
-        messages.info(request, 'Posted the message to your wall')
+        messages.info(request, 'Posted the message to your wall.')
         # return next_redirect(request)
         # return HttpResponseRedirect(reverse('album'))
         # return HttpResponseRedirect("post success!")
-        return render_to_response('post_succeed.html')
+
+        template = "post_succeed.html"
+
+        return render_to_response(template)
 
     return HttpResponse("post error")
 
 
 def publicalbum(request, albumurl):
     """Docstring goes here. """
+
     # FIXME: suffix should be a suffix, read below
     # url formation should look something like this:
     # http://domain.tld[:port]/user/album/suffix
     # suffix should look something like this: t7E5UEqsjgxFjjFRXw7h
     # public url: http://domain.tld[:port]/user/album/t7E5UEqsjgxFjjFRXw7h
+
     my_public_url_suffix = "http://localhost.foo.fi:8000/public/"+albumurl
     album = get_object_or_404(Album,public_url_suffix=my_public_url_suffix)
     pages = Page.objects.filter(album=album)
 
-    return render_to_response('public_album.html', {'pages': pages})
+    template = "public_album.html"
+    params = {'pages': pages}
+
+    return render_to_response(template, params)
