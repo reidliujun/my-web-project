@@ -4,7 +4,7 @@
 {% load staticfiles %}
 {% endblock head %}
 
-{% block title %}Page List{% endblock title %}
+{% block title %}{{ album.title }}{% endblock title %}
 {% block navbar-active-album %}active{% endblock navbar-active-album %}
 
 {% block content %}
@@ -49,8 +49,7 @@
 					<div class="setLinkDiv"><a class="thumbnail" href="/album/{{album.title}}/page/{{next_page}}/layout"><img class="setThumb" src="{% static 'images/layout-icon.png' %}" alt="Add New Page" height="180" width="240"/></a></div>
 					<div class="setText">
 						<a class="setLink" href="/album/{{album.title}}/page/{{next_page}}/layout">
-							<h2>+</h2>
-							<h4>Add New Page</h4>
+							<h2 title="Add a new page to your album.">+</h2>
 						</a>
 					</div>
 				</div>
