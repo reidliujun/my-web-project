@@ -15,7 +15,7 @@
 
 
 			<div class="albumorder" id="{{album.title}}">
-				<form role="form" action="{% url "order_submit" albumtitle=album.title%}" method="post" enctype="multipart/form-data">
+				<form action="{% url "order_submit" albumtitle=album.title%}" method="post" enctype="multipart/form-data">
 					
 					{% csrf_token %}
 					<div class="form-group">
