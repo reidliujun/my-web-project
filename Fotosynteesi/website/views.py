@@ -384,12 +384,12 @@ def order_submit(request, albumtitle):
         #use time_placed as pid, then it will be unique to each pid.
         neworder.pid = str(neworder.time_placed)
         neworder.checksum = neworder.checksumfunc()
-        ## uncomment the following when deployed on heroku
+        ## TODO: uncomment the following when deployed on heroku
         #neworder.success_url = "http://fotosynteesi.herokuapp.com/album/"
         #neworder.cancel_url = "http://fotosynteesi.herokuapp.com/album/"+album.title+"/paycancel"
         #neworder.error_url = "http://fotosynteesi.herokuapp.com/album/"+album.title+"/payerror"
         
-        ## comment the following when deployed on heroku
+        ## TODO: comment the following when deployed on heroku
         neworder.success_url = "http://localhost.foo.fi:8000/album/"
         neworder.cancel_url = "http://localhost.foo.fi:8000/album/"+album.title+"/paycancel"
         neworder.error_url = "http://localhost.foo.fi:8000/album/"+album.title+"/payerror"
