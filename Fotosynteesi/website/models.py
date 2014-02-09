@@ -23,20 +23,24 @@ class Order(m.Model):
     street_address = m.CharField(max_length=255)
     post_code_and_city = m.CharField(max_length=255)
     country = m.CharField(max_length=255)
-    # Payment id to identify this payment 
+
+    # Item counts, costs, and relevant dates/times
+    item_count = m.CharField(max_length=255)
+    total_cost = m.CharField(max_length=255)
+    time_placed = m.DateTimeField('Order time', default=datetime.datetime.now())
+    estimated_arrival_date = m.DateTimeField('Estimated arrival date', default=datetime.datetime.now()+datetime.timedelta(days=10))
+
+    # Payment id to identify this payment
     pid = m.CharField(max_length=255)
     # sid = group42
     sid = m.CharField(max_length=255)
-    number = m.CharField(max_length=255)
-    amount = m.CharField(max_length=255)
+
     success_url = m.CharField(max_length=255, blank=True, null=True)
     cancel_url = m.CharField(max_length=255, blank=True, null=True)
     error_url = m.CharField(max_length=255, blank=True, null=True)
     checksum = m.CharField(max_length=255)
     # order_status = m.CharField(max_length=255) # need to think about this
-    # order_time = m.DateTimeField()
-    order_time = m.DateTimeField('Order date', default = datetime.datetime.now)
-    receive_time = m.DateTimeField('receive date', default=datetime.datetime.now()+datetime.timedelta(days=10))
+    # time_placed = m.DateTimeField()
     # def __unicode__(self):
     #     return self.user
     def __unicode__(self):
@@ -45,8 +49,8 @@ class Order(m.Model):
     # calculate the sumsecurity for payment system
     def checksumfunc(self):
         import md5
-        checksumstr = "pid="+self.pid+"&sid="+self.sid+"&amount="+self.amount+"&token=01d46c1d7f4cbe9686f7d1d8aec559d6" 
-        mm = md5.new(checksumstr)
+        checksumstr = "pid="+self.pid+"&sid="+self.sid+"&amount="+self.total_cost+"&token=01d46c1d7f4cbe9686f7d1d8aec559d6"
+        mm = md5.new(checksumstr)  # FIXME: the module md5 is deprecated
         self.checksum = mm.hexdigest()
         return self.checksum
 

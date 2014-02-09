@@ -16,7 +16,7 @@
 
 			<div class="albumorder">
 				<h4>Money to be paid:<br>
-					{{order.amount}}€!!
+					{{ order.total_cost }}€!!
 				</h4>
 				<form action="http://payments.webcourse.niksula.hut.fi/pay/" method="post" enctype="multipart/form-data">
 					
@@ -24,11 +24,11 @@
 					{% csrf_token %}
 					<input type="hidden" name="pid" value="{{order.pid}}" id="pid" />
 					<input type="hidden" name="sid" value="{{order.sid}}"  id="sid" />
-					<input type="hidden" name="amount" value="{{order.amount}}" id="amount" />
 					<input type="hidden" name="success_url" value="{{order.success_url}}" id="success_url" />
 					<input type="hidden" name="cancel_url" value="{{order.cancel_url}}" id="cancel_url" />
 					<input type="hidden" name="error_url" value="{{order.error_url}}" id="error_url" />
 					<input type="hidden" name="checksum" value="{{order.checksum}}" id="checksum" />
+					<input type="hidden" name="amount" value="{{ order.total_cost }}" id="amount" />
 					
 					<input type="submit" value="Click to pay!"/>
 					{% endif %}

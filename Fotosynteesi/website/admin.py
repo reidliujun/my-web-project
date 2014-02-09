@@ -22,7 +22,7 @@ class PageAdmin(admin.ModelAdmin):
 
 
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ['user', 'order_time']
+    list_display = ['user', 'time_placed']
 
 admin.site.register(Image, ImageAdmin)
 admin.site.register(Album, AlbumAdmin)
