@@ -11,6 +11,7 @@ class Album(m.Model):
     public_url_suffix = m.CharField(max_length=255)
     collaboration_url_suffix = m.CharField(max_length=255)
     user = m.ManyToManyField(User)
+
     def __unicode__(self):
         return self.title
 
@@ -32,6 +33,7 @@ class Order(m.Model):
 
     # Payment id to identify this payment
     pid = m.CharField(max_length=255)
+
     # sid = group42
     sid = m.CharField(max_length=255)
 
@@ -46,14 +48,13 @@ class Order(m.Model):
     def __unicode__(self):
         return "Order:" + self.user.username + ";" 
 
-    # calculate the sumsecurity for payment system
     def checksumfunc(self):
+        """Calculates the sumsecurity for payment system. """
         import md5
         checksumstr = "pid="+self.pid+"&sid="+self.sid+"&amount="+self.total_cost+"&token=01d46c1d7f4cbe9686f7d1d8aec559d6"
         mm = md5.new(checksumstr)  # FIXME: the module md5 is deprecated
         self.checksum = mm.hexdigest()
         return self.checksum
-
 
 
 class Page(m.Model):
@@ -66,12 +67,15 @@ class Page(m.Model):
 # class Photo(m.Model):
 #     album = m.ManyToManyField(Album)
 #     page = m.ManyToManyRel(Page)
+
+
 class Image(m.Model):
     title = m.CharField(max_length=30)
     imgfile = m.ImageField(upload_to='documents/%Y/%m/%d')
     page = m.ManyToManyField(Page)
     user = m.ManyToManyField(User)
     album = m.ManyToManyField(Album)
+
     def __unicode__(self):
         return self.title
 
