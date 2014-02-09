@@ -24,8 +24,19 @@ from django_facebook.utils import next_redirect, parse_signed_request
 from django.contrib import messages
 
 
-@login_required
+
+
 def home(request):
+    if request.user.is_authenticated():
+        return render_to_response("album.html", context_instance=RequestContext(request))
+    else:
+        return render_to_response("home.html")
+
+def about(request):
+    return render_to_response("about.html", context_instance=RequestContext(request))
+
+@login_required
+def album(request):
     """Docstring goes here. """
     user = request.user
     msg = "hello %s, this is a test." % user.username
@@ -81,7 +92,7 @@ def log_user_in(request):
     if user is not None:
         if user.is_active:
             login(request, user)
-            return HttpResponseRedirect(reverse('website.views.home'))
+            return HttpResponseRedirect(reverse('website.views.album'))
         else:
             params = {"style": "danger",
                       "message": "This account has been disabled."}
@@ -116,7 +127,7 @@ def log_in(request):
     """
 
     if request.user.is_authenticated():
-        return redirect('/home/')  # TODO: /home/ vs. /album/, remove one
+        return redirect('/album/')  # TODO: /home/ vs. /album/, remove one
     elif request.method == 'POST':
         return log_user_in(request)
     else:
@@ -149,6 +160,10 @@ def log_out(request):
 from django.db import OperationalError
 
 
+def account(request):
+    return render_to_response("account.html", context_instance=RequestContext(request))
+
+
 def photo(request):  # TODO: should be refactored
     """Docstring goes here. """
 
@@ -165,12 +180,16 @@ def photo(request):  # TODO: should be refactored
     # Load images for the list page
     try:
         images = Image.objects.filter(user=request.user)
+        first_id=100000
+        if images:
+            images_order = images.values().order_by('id')
+            first_id = images_order.first()['id']
     except OperationalError:
         render_to_response("Serious problem.")
 
     # Render list page with the images and the form
     template = "photo.html"
-    params = {'images': images}
+    params = {'images': images,"var": first_id}
     return render(request, template, params)
 
 # def album(request):
@@ -184,15 +203,23 @@ def album_form(request):
     """Docstring goes here. """
     if request.method == 'POST':
         #get the album object
-        newalbum = Album(title=request.POST['title'])
-        newalbum.public_url_suffix = 'http://www.google.com'  # FIXME: 'Suffix'
-        newalbum.collaboration_url_suffix = 'http://www.google.com'  # FIXME: ^
+        if " " in request.POST['title']:
+            title_array=request.POST['title'].split(" ")
+            mytitle="_".join(title_array)
+            newalbum = Album(title = mytitle)
+        else:
+            newalbum = Album(title = request.POST['title'])
+        ## use for local test
+        newalbum.public_url_suffix = "http://localhost.foo.fi:8000/public/"+request.user.username+"_"+newalbum.title
+        ## use on heroku
+        #newalbum.public_url_suffix = "http://fotosynteesi.herokuapp.com/public/"+request.user.username+"_"+newalbum.title
+        newalbum.collaboration_url_suffix = 'google.com'
         
         #get the user object
         newalbum.save()
         user = User.objects.get(username=request.user.username)
         newalbum.user.add(user)
-        return HttpResponseRedirect(reverse('website.views.home'))
+        return HttpResponseRedirect(reverse('website.views.album'))
     albums = Album.objects.filter(user=request.user)
 
     template = "albumform.html"
@@ -241,7 +268,7 @@ def album_delete(request, albumtitle):
     images.delete()
     album.delete()
 
-    return HttpResponseRedirect(reverse('website.views.home'))
+    return HttpResponseRedirect(reverse('website.views.album'))
     
 
 def album_page(request, albumtitle):
@@ -271,15 +298,14 @@ def page_layout(request, albumtitle, pagenumber):
 
 
 def photoadd(request, albumtitle, pagenumber, layoutstyle):
-    """Docstring goes here. """
-    album = get_object_or_404(Album, user=request.user, title=albumtitle)
-    alb_page = get_object_or_404(Page, album=album, number=pagenumber)
-    alb_page.layout = layoutstyle
+    album=get_object_or_404(Album,user=request.user, title=albumtitle)
+    page=get_object_or_404(Page, album=album, number=pagenumber)
+    page.layout = layoutstyle
 
     if request.method == 'POST':
 
         #get the image object
-        newimg = Image(imgfile=request.FILES['imgfile'])
+        newimg = Image(imgfile = request.FILES['imgfile'])
         newtitle = request.FILES['imgfile'].name
         newimg.title = newtitle.split('.')[0]
         newimg.save()
@@ -288,19 +314,16 @@ def photoadd(request, albumtitle, pagenumber, layoutstyle):
         user = User.objects.get(username=request.user.username)
         newimg.user.add(user)
         newimg.album.add(album)
-        newimg.page.add(alb_page)
+        newimg.page.add(page)
         # Redirect to the images list after POST
-        params = {'albumtitle': album.title,
-                  'pagenumber': alb_page.number,
-                  'layoutstyle': alb_page.layout}
-        path = reverse('website.views.photoadd')
-        return HttpResponseRedirect(path, kwargs=params)
+        return HttpResponseRedirect(reverse('website.views.photoadd', 
+            kwargs={'albumtitle':album.title, 'pagenumber': page.number, 'layoutstyle':page.layout}))
 
-    images = Image.objects.filter(album=album,page=alb_page)
+    images = Image.objects.filter(album=album,page=page)
 
-    template = "photoadd.html"
-    params = {'images': images, 'album': album, 'page': alb_page}
-    return render(request, template, params)
+    return render_to_response(
+        'photoadd.html', {'images': images, 'album': album, 'page': page}, 
+        context_instance=RequestContext(request))
 
 
 def page_detail(request, albumtitle, pagenumber):
@@ -361,10 +384,15 @@ def order_submit(request, albumtitle):
         #use order_time as pid, then it will be unique to each pid.
         neworder.pid = str(neworder.order_time)
         neworder.checksum = neworder.checksumfunc()
-        base = "http://localhost.foo.fi"
-        neworder.success_url = base + ":8000/album/"+album.title+"/paysuccess"
-        neworder.cancel_url = base + ":8000/album/"+album.title+"/paycancel"
-        neworder.error_url = base + ":8000/album/"+album.title+"/payerror"
+        ## uncomment the following when deployed on heroku
+        #neworder.success_url = "http://fotosynteesi.herokuapp.com/album/"
+        #neworder.cancel_url = "http://fotosynteesi.herokuapp.com/album/"+album.title+"/paycancel"
+        #neworder.error_url = "http://fotosynteesi.herokuapp.com/album/"+album.title+"/payerror"
+        
+        ## comment the following when deployed on heroku
+        neworder.success_url = "http://localhost.foo.fi:8000/album/"
+        neworder.cancel_url = "http://localhost.foo.fi:8000/album/"+album.title+"/paycancel"
+        neworder.error_url = "http://localhost.foo.fi:8000/album/"+album.title+"/payerror"
         neworder.save()
 
         template = "order_submit.html"
@@ -445,6 +473,15 @@ def publicalbum(request, albumurl):
     pages = Page.objects.filter(album=album)
 
     template = "public_album.html"
-    params = {'pages': pages}
+    params = {'pages': pages, 'url':albumurl}
 
     return render_to_response(template, params)
+
+def publicpage(request,albumurl,pagenumber):
+    my_public_url_suffix = "http://localhost.foo.fi:8000/public/"+albumurl
+    album = get_object_or_404(Album,public_url_suffix=my_public_url_suffix)
+    page = Page.objects.filter(album=album, number=pagenumber)
+    images = Image.objects.filter(album=album, page=page)
+
+    return render_to_response(
+        'public_page.html', {'album': album, 'page': page, 'images': images})

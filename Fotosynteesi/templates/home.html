@@ -10,22 +10,23 @@
 
 {% block content %}
 
-	<div class="row">
-		<div class="col-lg-12">
-			{% if not user.is_authenticated  %}
+	<div class="fotosynteesihome">
+        <h2>Welcom to Fotosynteesi</h2>
+        <br>
+        <p class="lead">Fotosynteesi is a website help you to make your own album. You can share and order your personalized albums easily. Sign up and check more details.</p>
+        <br>
+        <p><a class="btn btn-lg btn-success" href="/register/" role="button">Sign up</a></p>
+    </div>
 
-			<div class="page-header">
-				<h2>Build your own album</h2>
-				<div id="container"> 
-					<div id="image-container" class="clearfix"> 
-					</div> 
-				</div> 
-			</div>
+    <div class="row marketing">
+        <div class="col-lg-6">
+          <h4>Share on Facebook</h4>
+          <p>Share on Facebook is simple by just click the share link.</p>
 
-			{% endif %}
-		
-		
-		</div>
+          <h4>Order</h4>
+          <p>Order your album by one-click pay on our own payment system.</p>
+
+        </div>
 
 
 	</div>

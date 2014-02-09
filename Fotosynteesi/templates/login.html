@@ -8,40 +8,31 @@
 
 {% block content %}
 
-<div id="login-wrapper" class="wrapper">
-    <div class="outer">
-        <div id="fslogin" class="inner">
-            <form class="form-signin" action="{% url "login" %}" method="post">{% csrf_token %}
-                <h2 class="form-signin-heading">Sign in</h2>
+<div id="register" class="regcontainer">
+        <form class="form-signin" action="{% url "login" %}" method="post">{% csrf_token %}
+            <h2 class="form-signin-heading">Sign in</h2>
                 <p class="text-{{ style|default:'info' }}">{{ message|default:'Sign in using your Fotosynteesi credentials.' }}</p>
-                <input type="text" required class="form-control" placeholder="Username" name="username">
-                <input type="password" required class="form-control" placeholder="Password" name="password">
-                <label class="checkbox">
-                  <input type="checkbox" value="remember-me"> Remember me
-                </label>
-                <button class="btn btn-large btn-primary" type="submit">Sign in</button>
-                <br><br><a href='/register/'>Don't have an account yet?</a>
-            </form>
-        </div>
-    </div>
+            <input type="text" required class="form-control" placeholder="Username" name="username">
+            <input type="password" required class="form-control" placeholder="Password" name="password">
+            <button class="btn btn-large btn-primary" type="submit">Sign in</button>
+            <br><br><a href='/register/'>Don't have an account yet?</a>
+        </form>
 
-    <div id="outer-or-box">
-        <div id="inner-or-box">
-            <p>- or -</p>
-        </div>
-    </div>
 
-    <div class="outer">
-        <div id="fblogin" class="inner">
+        <br><br><br>
+        <h2 class="form-signin-heading">Or login with Facebook</h2>
+        <br><br><br>
+
+
             <!--form to call registration via facebook -->
-            <form action="{% url 'facebook_connect' %}" method="post">
-                {% csrf_token %}
-                <div id="facebook_login_redirect">
-                    <input type="image" src="{% static 'django_facebook/images/facebook_login.png' %}"/>
-                </div>
-            </form>
-        </div>
-    </div>
+        <form action="{% url 'facebook_connect' %}" method="post">
+            {% csrf_token %}
+            <div id="facebook_login_redirect">
+                <!-- <input type="image" src="{% static 'django_facebook/images/facebook_login.png' %}"/> -->
+                <input type="image" src="{% static 'images/fb_login.png' %}"/>
+            </div>
+        </form>
+
 
 </div>
 

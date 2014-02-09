@@ -32,25 +32,44 @@
 				</form>
 			</div> -->
 
-			<div class="row">
-				{% if images %}
+			{% if images %}
+			<div id="myCarousel" class="carousel slide" >
+				  <!-- Indicators -->
 
-					{% for image in images %}
-					<div class="col-xs-6 col-md-3">
-						<a class="thumbnail" href="{{ image.imgfile.url }}">
-							<img src="{{ image.imgfile.url }}" height="180" width="240">
-						</a>
-					</div>
-					{% endfor %}
+				  <div class="carousel-inner">
+				  	
+					  	{% if images|length == 1 %}
+					  		{% for image in images %}
+					    	<div class="active item" ><img src="{{ image.imgfile.url }}"  alt="HTML5 logo" height="180" width="700"/></div>
+					    	{% endfor %}
+					    {% else %}
+					    	{% for image in images %}
+						  		{% if image.id == var %}
+						    		<div class="active item" ><img src="{{ image.imgfile.url }}"  alt="HTML5 logo" height="180" width="700"/></div>
+						    	{% else %}
+						    		<div class="item" ><img src="{{ image.imgfile.url }}"  alt="HTML5 logo" height="180" width="700"/></div>
+						    	{% endif %}
+					    	{% endfor %}
+					    {% endif %}
+				    
+				  </div>
 
-				{% else %}
-					<p>No images.</p>
-				{% endif %}
+				 <!-- Wrapper for slides -->
+<!-- 				  <div class="carousel-inner">
+				    <div class="item active">
+				      <img src="..." alt="...">
+				      <div class="carousel-caption">
+				      </div>
+				    </div>
+				  </div> -->
+							<!-- Controls -->
+				<a class="left carousel-control" data-slide="prev" href="#myCarousel"><span class="icon-prev"></span></a>
+				<a class="right carousel-control" data-slide="next" href="#myCarousel"><span class="icon-next"></span></a>
+				 
 			</div>
-
-
-		
-		
+			{% else %}
+				<p>No images.</p>
+			{% endif %}
 		</div>
 
 

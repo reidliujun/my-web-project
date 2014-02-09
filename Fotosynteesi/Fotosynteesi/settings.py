@@ -29,7 +29,7 @@ SECRET_KEY = '*cf*b#+tv*)up1=i1^(l_oxg+%@#apu%su6yns_uga8fl@z%&w'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True  # TODO: change to False before going 'live'
 TEMPLATE_DEBUG = True
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 
@@ -99,3 +99,25 @@ USE_L10N = True
 USE_TZ = True
 
 COMMENTS_ALLOW_PROFANITIES = True
+
+#Parse database configuration from $DATABASE_URL, uncomment the following code when deployed on heroku
+
+
+# import dj_database_url
+# DATABASES['default'] =  dj_database_url.config()
+
+# # Honor the 'X-Forwarded-Proto' header for request.is_secure()
+# SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# # Allow all host headers
+# ALLOWED_HOSTS = ['*']
+
+# # Static asset configuration
+# import os
+# BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# STATIC_ROOT = 'staticfiles'
+# STATIC_URL = '/static/'
+
+# STATICFILES_DIRS = (
+#     os.path.join(BASE_DIR, 'static'),
+# )

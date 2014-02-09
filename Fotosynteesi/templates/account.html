@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block head %}
+{% load staticfiles %}
+<link rel="stylesheet" href="{% static 'css/login.css' %}"/>
+{% endblock %}
+
+{% block title %}Order List{% endblock %}
+{% block navbar-active-order %}active{% endblock %}
+
+{% block content %}
+
+  <div class="row">
+    <div class="col-lg-12">
+
+
+      <div class="col-sm-4">
+          <ul class="list-group">
+    <!--        <li><a href="{{ image.imgfile.url }}">{{ image.imgfile.name }}</a></li> -->
+            <li class="list-group-item">
+              <p>Username:</p>
+              <p>{{user.username}}</p>
+            </li>
+            <li class="list-group-item">
+              <p>Date of joined:</p>
+              <p>{{user.date_joined}}</p>
+            </li>
+            <li class="list-group-item">
+              <p>Last login time:</p>
+              <p>{{user.last_login}}</p>
+            </li>
+          </ul>
+
+      </div>
+  
+    </div>
+
+
+    </div>
+{% endblock %}

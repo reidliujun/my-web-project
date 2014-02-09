@@ -39,3 +39,10 @@ c. Mainly add the view and url file to launch the share function
 
 2. Modified template class to use the bootstrap css and make the webpage look a bit nicer. :)
  mainly modified the class of "form", "button" and "thumbnail" (the class of tag <a> of to show the image on screen). 
+
+9.2 2014 
+
+1. modified the UI in base.html, so that it will follow the user using habbit
+2. modified the public visit page
+3. fixed the bug when user input the album title with space (in template "albumform" function)
+4. add some essential code (commented now) and file (maily Procfile and requirements.txt) should be used when deployed on heroku
