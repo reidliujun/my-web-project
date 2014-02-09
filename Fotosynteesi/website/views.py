@@ -372,7 +372,7 @@ def order_submit(request, albumtitle):
             street_address=request.POST.get('street_address', False),
             post_code_and_city=request.POST.get('post_code_and_city', False),
             country=request.POST.get('country', False),
-            number=request.POST.get('number', False),
+            item_count=request.POST.get('item_count', False),
             sid="group42",
             album=album)
         # neworder = Order(album = album, user=request.user)
@@ -380,9 +380,9 @@ def order_submit(request, albumtitle):
         #set the pid for each independent order
         # neworder.pid= "oktopay"
 
-        neworder.amount = str(10*int(neworder.number))
-        #use order_time as pid, then it will be unique to each pid.
-        neworder.pid = str(neworder.order_time)
+        neworder.total_cost = str(10*int(neworder.item_count))
+        #use time_placed as pid, then it will be unique to each pid.
+        neworder.pid = str(neworder.time_placed)
         neworder.checksum = neworder.checksumfunc()
         ## uncomment the following when deployed on heroku
         #neworder.success_url = "http://fotosynteesi.herokuapp.com/album/"
