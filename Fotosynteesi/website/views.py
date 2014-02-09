@@ -334,7 +334,7 @@ def page_detail(request, albumtitle, pagenumber):
 
     template = "page_detail.html"
     params = {'album': album, 'page': page, 'images': images}
-    return render_to_response(request, template, params)
+    return render(request, template, params)
 
 
 def page_delete(request, albumtitle, pagenumber):
