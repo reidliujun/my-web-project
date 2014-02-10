@@ -24,16 +24,16 @@ from django_facebook.utils import next_redirect, parse_signed_request
 from django.contrib import messages
 
 
-
-
 def home(request):
     if request.user.is_authenticated():
         return render_to_response("album.html", context_instance=RequestContext(request))
     else:
         return render_to_response("home.html")
 
+
 def about(request):
     return render_to_response("about.html", context_instance=RequestContext(request))
+
 
 @login_required
 def album(request):
@@ -204,14 +204,15 @@ def album_form(request):
     if request.method == 'POST':
         #get the album object
         if " " in request.POST['title']:
-            title_array=request.POST['title'].split(" ")
-            mytitle="_".join(title_array)
-            newalbum = Album(title = mytitle)
+            title_array = request.POST['title'].split(" ")
+            mytitle = "_".join(title_array)
+            newalbum = Album(title=mytitle)
         else:
-            newalbum = Album(title = request.POST['title'])
-        ## use for local test
+            newalbum = Album(title=request.POST['title'])
+        # TODO: FOR DEPLOYMENT: Remove line below
         newalbum.public_url_suffix = "http://localhost.foo.fi:8000/public/"+request.user.username+"_"+newalbum.title
-        ## use on heroku
+        # FIXME: Suffix is still wrong
+        # TODO: FOR DEPLOYMENT: Uncomment line below
         #newalbum.public_url_suffix = "http://fotosynteesi.herokuapp.com/public/"+request.user.username+"_"+newalbum.title
         newalbum.collaboration_url_suffix = 'google.com'
         
@@ -265,8 +266,8 @@ def album_delete(request, albumtitle):
     album = Album.objects.filter(user=request.user, title=albumtitle)
     images = Image.objects.filter(album=album)
     # for image in images:
-    images.delete()
-    album.delete()
+    images.delete()  # FIXME: This is wrong, images are not deleted
+    album.delete()  # TODO: Realistically, albums shouldn't be either immediatl
 
     return HttpResponseRedirect(reverse('website.views.album'))
     
@@ -384,15 +385,17 @@ def order_submit(request, albumtitle):
         #use time_placed as pid, then it will be unique to each pid.
         neworder.pid = str(neworder.time_placed)
         neworder.checksum = neworder.checksumfunc()
-        ## TODO: uncomment the following when deployed on heroku
+
+        ## TODO: DEPLOYMENT: Uncomment the following three lines
         #neworder.success_url = "http://fotosynteesi.herokuapp.com/album/"
         #neworder.cancel_url = "http://fotosynteesi.herokuapp.com/album/"+album.title+"/paycancel"
         #neworder.error_url = "http://fotosynteesi.herokuapp.com/album/"+album.title+"/payerror"
         
-        ## TODO: comment the following when deployed on heroku
+        ## TODO: DEPLOYMENT: Remove the following three lines
         neworder.success_url = "http://localhost.foo.fi:8000/album/"
         neworder.cancel_url = "http://localhost.foo.fi:8000/album/"+album.title+"/paycancel"
         neworder.error_url = "http://localhost.foo.fi:8000/album/"+album.title+"/payerror"
+
         neworder.save()
 
         template = "order_submit.html"
@@ -477,7 +480,10 @@ def publicalbum(request, albumurl):
 
     return render_to_response(template, params)
 
+
 def publicpage(request,albumurl,pagenumber):
+    """Docstring goes here. """
+
     my_public_url_suffix = "http://localhost.foo.fi:8000/public/"+albumurl
     album = get_object_or_404(Album,public_url_suffix=my_public_url_suffix)
     page = Page.objects.filter(album=album, number=pagenumber)

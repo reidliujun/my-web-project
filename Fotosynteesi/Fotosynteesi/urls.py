@@ -19,14 +19,14 @@ urlpatterns = patterns('',
     # url(r'^album/.{20}$', 'website.views.?', name='?'), # share/collaborate
 
     url(r'^home/$', 'website.views.home', name='home'),
-    url(r'^album/$', 'website.views.album', name='album'),
     #url(r'^home/$', 'website.views.home', name='album'),
 
     # Displays to the user a list of their albums. This is f.ex.
     # triggered when clicking "ALBUMS" tab item in the navigation bar.
-    #url(r'^album/$', 'website.views.home', name='album'),
+    # FIXME: Should be ^user/album/$
+    url(r'^album/$', 'website.views.album', name='album'),
     # This also triggers when a logged in user attempts to access root dir.
-    #url(r'^$', RedirectView.as_view(url='/album/')),
+    url(r'^$', RedirectView.as_view(url='/album/')),
 
     url(r'^album_form/', 'website.views.album_form', name='album_form'),
 
@@ -63,7 +63,7 @@ urlpatterns = patterns('',
     url(r'^order/$', 'website.views.order_detail', name='order_detail'),
     url(r'^about/$', 'website.views.about', name='about'),
     url(r'^account/$', 'website.views.account', name='account'),
-    url(r'^$', RedirectView.as_view(url='/home/')),
+    # url(r'^$', RedirectView.as_view(url='/home/')),
     url(r'^facebook_post/(?P<albumtitle>\w+)/$', 'website.views.facebook_post', name='facebook_post'),
 
     # TODO: static.static() function not intended for deployment, read below
