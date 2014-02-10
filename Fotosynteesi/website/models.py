@@ -126,6 +126,7 @@ class Page(m.Model):
 
 class Image(m.Model):
     title = m.CharField(max_length=30)
+    # FIXME: This is bad, we have to upload to user specific directories
     imgfile = m.ImageField(upload_to='documents/%Y/%m/%d')
     page = m.ManyToManyField(Page)
     user = m.ManyToManyField(User)
