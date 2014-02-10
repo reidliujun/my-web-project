@@ -7,6 +7,7 @@ import datetime
 
 
 class Album(m.Model):
+    """Docstring goes here. """
     title = m.CharField(max_length=255)
     public_url_suffix = m.CharField(max_length=255)
     collaboration_url_suffix = m.CharField(max_length=255)
@@ -61,10 +62,10 @@ class Order(m.Model):
     estimated_arrival_date = m.DateTimeField('Estimated arrival date',
                                              default=datetime.datetime.now()+datetime.timedelta(days=10))
 
-    # Payment id to identify this payment
+    # Payment ID to identify the payment used for this order
     pid = m.CharField(max_length=255)
 
-    # sid = group42
+    # Seller ID == 'group42'
     sid = m.CharField(max_length=255)
 
     success_url = m.CharField(max_length=255, blank=True, null=True)
@@ -102,10 +103,11 @@ class Order(m.Model):
     def __unicode__(self):  # TODO: What is this?
         return "Order:" + self.user.username + ";"
 
-    ''' Generate the checksum value according to user pid, sid, amount and the token, 
-        will be used for verification in the order system.'''
     def checksumfunc(self):
-        """Calculates the sumsecurity for payment system. """
+        """Generate the checksum value according to user pid, sid, amount and
+        the token, will be used for verification in the order system.
+
+        """
         import md5
         checksumstr = "pid="+self.pid+"&sid="+self.sid+"&amount="+self.total_cost+"&token=01d46c1d7f4cbe9686f7d1d8aec559d6"
         mm = md5.new(checksumstr)  # FIXME: the module md5 is deprecated
@@ -127,6 +129,7 @@ class Page(m.Model):
 
 
 class Image(m.Model):
+    """Represents a single referenced (or uploaded) photograph. """
     title = m.CharField(max_length=30)
     # FIXME: This is bad, we have to upload to user specific directories
     imgfile = m.ImageField(upload_to='documents/%Y/%m/%d')
@@ -138,6 +141,7 @@ class Image(m.Model):
         return self.title
 
     def delete(self, *args, **kwargs):
+        """Docstring goes here. """
         # get the page and storage before delete
         storage, path = self.imgfile.storage, self.imgfile.path
         # Delete the model before the file
