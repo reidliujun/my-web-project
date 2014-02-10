@@ -17,19 +17,49 @@ class Album(m.Model):
 
 
 class Order(m.Model):
+    """An order, containing user, album, recipient, time, and cost information.
+
+    album -- Needs to be deepcopied at the moment of order, as this
+    way we can ensure that the user receives the same album as they have
+    ordered. Otherwise, these is the danger that the album will be modified
+    from time ordered to time printed. This is to be avoided.
+
+    firstname, lastname, street_address, post_code_and_city, country -- Asked
+    on a per order basis, as users are free to order their albums to whom ever
+    they would like to. (default: last used values)
+
+    item_cost -- (base cost) + (# of pages in the album) * (page cost)
+
+    shipping_cost -- (country coefficient) * (order weight)
+
+    total_cost -- item_count * item_cost + shipping_cost
+
+    estimated_arrival_date -- Calculated based on country shipped to.
+
+    """
     user = m.ForeignKey(User)
-    album = m.ForeignKey(Album)
+    album = m.ForeignKey(Album)  # TODO: This is bad, orders must be static.
+
+    # Recipient/address information (NOTE: user does not have to be recipient!)
     firstname = m.CharField(max_length=255)
     lastname = m.CharField(max_length=255)
     street_address = m.CharField(max_length=255)
     post_code_and_city = m.CharField(max_length=255)
     country = m.CharField(max_length=255)
 
-    # Item counts, costs, and relevant dates/times
-    item_count = m.CharField(max_length=255)
-    total_cost = m.CharField(max_length=255)
+    # Item names, counts, costs, and relevant dates/times
+    item_count = m.PositiveSmallIntegerField(default=1)  # TODO: multipl albums
+    order_weight = m.FloatField(default=50)  # TODO: item_count * album pages
+    currency = m.CharField(max_length=3, default="EUR")
+    item_cost = m.FloatField(default=55)  # TODO: Change this to do the math.
+    shipping_cost = m.FloatField(default=10)  # TODO: calculate this
+    total_cost = m.FloatField(default=65)  # TODO: make this calculate
+    # TODO: status choices
+    status = m.CharField(max_length=255, default="Awaiting confirmation")
     time_placed = m.DateTimeField('Order time', default=datetime.datetime.now())
-    estimated_arrival_date = m.DateTimeField('Estimated arrival date', default=datetime.datetime.now()+datetime.timedelta(days=10))
+    # TODO: should do math
+    estimated_arrival_date = m.DateTimeField('Estimated arrival date',
+                                             default=datetime.datetime.now()+datetime.timedelta(days=10))
 
     # Payment id to identify this payment
     pid = m.CharField(max_length=255)
@@ -45,8 +75,32 @@ class Order(m.Model):
     # time_placed = m.DateTimeField()
     # def __unicode__(self):
     #     return self.user
-    def __unicode__(self):
-        return "Order:" + self.user.username + ";" 
+
+    def get_order_details(self):
+        """Returns a list of user-relevant order details for template use. """
+        details = [
+            ["Album name:",
+             self.album.title],
+            ["Order status:",
+             self.status],
+            ["Time ordered:",
+             self.time_placed],
+            ["Estimated time of arrival:",
+             self.estimated_arrival_date],
+            ["Cost per copy:",
+             "%s %.2f" % (self.currency, self.item_cost)],
+            ["Copies ordered:",
+             self.item_count],
+            ["Total cost of shipping:",
+             "%s %.2f" %
+             (self.currency, self.shipping_cost)],
+            ["Total paid:",
+             "%s %.2f" % (self.currency, self.total_cost)],
+        ]
+        return details
+
+    def __unicode__(self):  # TODO: What is this?
+        return "Order:" + self.user.username + ";"
 
     def checksumfunc(self):
         """Calculates the sumsecurity for payment system. """
@@ -61,6 +115,7 @@ class Page(m.Model):
     album = m.ForeignKey(Album)
     layout = m.PositiveSmallIntegerField()
     number = m.PositiveSmallIntegerField()
+
     def __unicode__(self):
         return "Album:" + self.album.title + "; Page:" + str(self.number)
 

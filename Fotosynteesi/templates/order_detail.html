@@ -15,37 +15,40 @@
 			<div class="col-sm-4">
                 <table class="list-group" cellpadding="4">
                     {% if orders %}
-                        <h4>Items Ordered</h4>
+                        <h4>Order History</h4>
                         {% for order in orders %}
                             <tbody class="list-group-item">
-                                <tr>
-                                    <td>Order status:</td>
-                                    <td>{{ order.status }}</td>
-                                </tr>
-                                <tr>
-                                    <td>Time ordered:</td>
-                                    <td>{{ order.time_placed }}</td>
-                                </tr>
-                                <tr>
-                                    <td>Estimated time of arrival:</td>
-                                    <td>{{ order.estimated_arrival_date }}</td>
-                                </tr>
-                                <tr>
-                                    <td>Copies ordered:</td>
-                                    <td>{{ order.item_count }}</td>
-                                </tr>
-                                <tr>
-                                    <td>Cost per copy:</td>
-                                    <td>{{ order.currency }} {{ order.cost_per_copy }}</td>
-                                </tr>
-                                <tr>
-                                    <td>Total cost of shipping:</td>
-                                    <td>{{ order.currency }} {{ order.cost_of_shipping }}</td>
-                                </tr>
-                                <tr>
-                                    <td>Total paid:</td>
-                                    <td>{{ order.currency }} {{ order.total_cost }}</td>
-                                </tr>
+                                {% for row in order.get_order_details %}
+                                    <tr><td>{{ row.0 }}</td><td>{{ row.1 }}</td></tr>
+                                {% endfor %}
+{#                                <tr>#}
+{#                                    <td>Order status:</td>#}
+{#                                    <td>{{ order.status }}</td>#}
+{#                                </tr>#}
+{#                                <tr>#}
+{#                                    <td>Time ordered:</td>#}
+{#                                    <td>{{ order.time_placed }}</td>#}
+{#                                </tr>#}
+{#                                <tr>#}
+{#                                    <td>Estimated time of arrival:</td>#}
+{#                                    <td>{{ order.estimated_arrival_date }}</td>#}
+{#                                </tr>#}
+{#                                <tr>#}
+{#                                    <td>Copies ordered:</td>#}
+{#                                    <td>{{ order.item_count }}</td>#}
+{#                                </tr>#}
+{#                                <tr>#}
+{#                                    <td>Cost per copy:</td>#}
+{#                                    <td>{{ order.currency }} {{ order.cost_per_copy }}</td>#}
+{#                                </tr>#}
+{#                                <tr>#}
+{#                                    <td>Total cost of shipping:</td>#}
+{#                                    <td>{{ order.currency }} {{ order.cost_of_shipping }}</td>#}
+{#                                </tr>#}
+{#                                <tr>#}
+{#                                    <td>Total paid:</td>#}
+{#                                    <td>{{ order.currency }} {{ order.total_cost }}</td>#}
+{#                                </tr>#}
                             </tbody>
                         {% endfor %}
                     {% else %}
