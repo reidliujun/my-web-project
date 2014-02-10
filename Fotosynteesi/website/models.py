@@ -102,6 +102,8 @@ class Order(m.Model):
     def __unicode__(self):  # TODO: What is this?
         return "Order:" + self.user.username + ";"
 
+    ''' Generate the checksum value according to user pid, sid, amount and the token, 
+        will be used for verification in the order system.'''
     def checksumfunc(self):
         """Calculates the sumsecurity for payment system. """
         import md5
