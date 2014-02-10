@@ -13,6 +13,9 @@
 > - *For each feature, how do you plan to implement it?*
 
 <hr><hr>
+# General information about the project
+This project is intended to be run on Python 2.7.2, with other dependencies as noted in requirements.txt.
+
 # Requirements / Graded Items
 
 ###Valid CSS and HTML
