@@ -37,7 +37,8 @@ def about(request):
 
 @login_required
 def album(request):
-    """Docstring goes here. """
+    """The album page show all the albums list 
+    with request user filter in database. """
     user = request.user
     msg = "hello %s, this is a test." % user.username
     try:
@@ -57,7 +58,8 @@ def order(request):
 
 
 def create_user(request):
-    """Docstring goes here. """
+    """User create by using  'django.contrib.auth' system 
+    see https://docs.djangoproject.com/en/dev/topics/auth/ for more detail"""
     username = request.POST['username']
     password = request.POST['password']
     retyped_password = request.POST['retypedPassword']
@@ -165,7 +167,8 @@ def account(request):
 
 
 def photo(request):  # TODO: should be refactored
-    """Docstring goes here. """
+    """Order the images of one user by id, 
+    and show the photo on webpage slide form. """
 
     # Handle file upload
     # if request.method == 'POST':
@@ -200,7 +203,7 @@ def photo(request):  # TODO: should be refactored
 
 
 def album_form(request):
-    """Docstring goes here. """
+    """Input the album title, when 'POST', create the new album. """
     if request.method == 'POST':
         #get the album object
         if " " in request.POST['title']:
@@ -210,6 +213,7 @@ def album_form(request):
         else:
             newalbum = Album(title=request.POST['title'])
         # FIXME: No hard-coding urls!
+        '''Assign the public url to album attribute. '''
         newalbum.public_url_suffix = "http://localhost.foo.fi:8000/public/"+request.user.username+"_"+newalbum.title
         # FIXME: Suffix is still wrong!
         # FIXME: No hard-coding urls!
@@ -228,7 +232,7 @@ def album_form(request):
 
 
 def albumdetail(request, albumtitle):
-    """ Docstring goes here. """
+    """ Not been used in the url, can be deleted"""
 
     albums = get_object_or_404(Album, user=request.user, title=albumtitle)
     if request.method == 'POST':
@@ -262,7 +266,7 @@ def albumdetail(request, albumtitle):
 
 
 def album_delete(request, albumtitle):
-    """ Docstring goes here. """
+    """ Delete the album with the albumtitle and redirect to 'album' page """
     album = Album.objects.filter(user=request.user, title=albumtitle)
     images = Image.objects.filter(album=album)
     # for image in images:
@@ -273,7 +277,7 @@ def album_delete(request, albumtitle):
     
 
 def album_page(request, albumtitle):
-    """ Docstring goes here. """
+    """ Show the page detail inside one chosen album with its title """
     album = get_object_or_404(Album,user=request.user, title=albumtitle)
     pages = Page.objects.filter(album=album)
     if not pages:
@@ -289,7 +293,10 @@ def album_page(request, albumtitle):
 
 
 def page_layout(request, albumtitle, pagenumber):
-    """ Docstring goes here. """
+    """ Choose the possible layout of the page, 
+    and the layout attribute of the page will be given.
+    Notice: when user click the layout style, 
+    the page will be created no matter user upload photoes or not. """
     album = get_object_or_404(Album, user=request.user, title=albumtitle)
     alb_page = Page.objects.create(album=album, number=pagenumber, layout=1)
 
@@ -299,6 +306,9 @@ def page_layout(request, albumtitle, pagenumber):
 
 
 def photoadd(request, albumtitle, pagenumber, layoutstyle):
+    '''Add photo by using 'file' type of input tag, 
+    and the photo is added according to the album, page as well as user.'''
+
     album=get_object_or_404(Album,user=request.user, title=albumtitle)
     page=get_object_or_404(Page, album=album, number=pagenumber)
     page.layout = layoutstyle
@@ -328,7 +338,7 @@ def photoadd(request, albumtitle, pagenumber, layoutstyle):
 
 
 def page_detail(request, albumtitle, pagenumber):
-    """Docstring goes here. """
+    """Show the page with its photo in the webpage """
     album = get_object_or_404(Album, user=request.user, title=albumtitle)
     page = Page.objects.filter(album=album, number=pagenumber)
     images = Image.objects.filter(user=request.user, album=album, page=page)
@@ -339,7 +349,7 @@ def page_detail(request, albumtitle, pagenumber):
 
 
 def page_delete(request, albumtitle, pagenumber):
-    """Docstring goes here. """
+    """Delete the selected page. """
     album = get_object_or_404(Album, user=request.user, title=albumtitle)
     page = Page.objects.filter(album=album, number=pagenumber)
     images = Image.objects.filter(user=request.user, album=album, page=page)
@@ -351,7 +361,7 @@ def page_delete(request, albumtitle, pagenumber):
 
 
 def album_order(request, albumtitle):
-    """Docstring goes here. """
+    """Order the album by filling a order form """
 
     album = get_object_or_404(Album,user=request.user, title=albumtitle)
 
@@ -361,7 +371,8 @@ def album_order(request, albumtitle):
 
 
 def order_submit(request, albumtitle):
-    """Docstring goes here. """
+    """Submit the order to order system.
+    'sid', 'pid', 'redirect url' as well as 'amount' value need to given in the system. """
 
     album = get_object_or_404(Album, user=request.user, title=albumtitle)
     if request.method == "POST":
@@ -408,7 +419,7 @@ def order_submit(request, albumtitle):
 
 
 def paysuccess(request, albumtitle):
-    """Docstring goes here. """
+    """If pay success, redirect to the paysuccess page. """
     pid = request.GET['pid']
     ref = request.GET['ref']
     checksum = request.GET['checksum']
@@ -420,19 +431,20 @@ def paysuccess(request, albumtitle):
 
 
 def paycancel(request, albumtitle):
-    """Docstring goes here. """
+    """Pay cancel. Notice: when click cancel in the order syste, 
+    the order still there need to be deleted in the future. """
 
     return HttpResponse("paycancel")
 
 
 def payerror(request, albumtitle):
-    """Docstring goes here. """
+    """Pay error, same as paycancel """
 
     return HttpResponse("payerror")
 
 
 def order_detail(request):
-    """Docstring goes here. """
+    """Give the order lists with details of a user """
 
     orders = Order.objects.filter(user=request.user)
     params = {'orders': orders}
@@ -444,7 +456,9 @@ def order_detail(request):
 @facebook_required(scope='publish_stream')
 @csrf_protect
 def facebook_post(request, graph, albumtitle):
-    """Docstring goes here. """
+    """By using the django_facebook app, get the graph object, 
+    and post directly on user's facebook.
+    Reference:  https://github.com/tschellenbach/django-facebook """
 
     album = get_object_or_404(Album, user=request.user, title=albumtitle)
     message = album.public_url_suffix
@@ -463,7 +477,7 @@ def facebook_post(request, graph, albumtitle):
 
 
 def publicalbum(request, albumurl):
-    """Docstring goes here. """
+    """The webpage when user visit the shared album. """
 
     # FIXME: suffix should be a suffix, read below
     # url formation should look something like this:
@@ -483,7 +497,7 @@ def publicalbum(request, albumurl):
 
 
 def publicpage(request,albumurl,pagenumber):
-    """Docstring goes here. """
+    """The webpage when user visit the page of the shared album. """
 
     # FIXME: No hard-coding urls!
     # FIXME: Not the right idea for suffix!
