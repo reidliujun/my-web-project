@@ -1,4 +1,8 @@
+<hr><hr>
+
 ![Fotosynteesi Logo](Fotosynteesi/website/static/images/logo_full.gif?raw=true)
+
+<hr><hr>
 
 > *General description of what you are doing and how you are doing that (what kinds of views, models are needed), how they relate to each other, and what is the implementation order and timetable.*
 
@@ -35,7 +39,7 @@ Provide a public link just like google doc. Not allow editing.
 Possible way: saved the album in database with a random key value (probably hash and key generated according to the time stamp and album name). The public link could be “url + key”.
 
 ###Share albums (max 80 points)
-Publish the generated public link to Facebook. (use [facebook share javascript api for web](https://developers.facebook.com/docs/plugins/share-button/))
+Publish the generated public link to Facebook (using [facebook share javascript api for web](https://developers.facebook.com/docs/plugins/share-button/)).
 
 ###Order albums (mandatory, 50-200 points)
 Order page: copy number, address, price calculate and order to go to the payment page.
@@ -48,17 +52,19 @@ Two ways of adding photo to the pool:
 2. add photo by searching in flickr (possibile gallery api: using the personal flickr photo pool with the user ID ).
 
 ###3rd party login (max 100 points)
-Facebook. Use [Facebook login api for javascript](https://developers.facebook.com/docs/facebook-login/login-flow-for-web/)
+Facebook. Use [Facebook login api for javascript](https://developers.facebook.com/docs/facebook-login/login-flow-for-web/).
 
 ###Use of Ajax (max 100 points)
 Operation like page flipping, dragging and dropping saved in server.
 
 ###Non-functional requirements (max 200 points)
 Overall **documentation**, demo **(\*)**, teamwork, and project management as seen from the history of your github project.
+
 **(\*)** *Note: The execution for this should be planned (30 min in duration).*
 
 <hr><hr>
-# Models *( -> User, Album, Order, Page, Photo)*
+# Models
+*( -> User, Album, Order, Page, Photo)*
 
 ## User (from django.contrib.auth)
 
@@ -123,7 +129,7 @@ Users can add photos into an *album’s* **photo pool**. This pool of photos wil
 ###Page: ManyToMany
 A photo can exist on many different pages and different pages can contain the same photo.
 
-*Note: **Adding a photo** from an album's photo pool **to a page, should**, however, **remove it** from that pool. Otherwise it will be a major inconvenience for the user to keep track of which photos they have already used.*
+*Note:* **Adding a photo** *from an album's photo pool* **to a page, should**, *however*, **remove it** *from that pool. Otherwise it will be a major inconvenience for the user to keep track of which photos they have already used.*
 
 <hr><hr>
 # Urls / Views
@@ -140,20 +146,23 @@ URL | Action / View
 *app.host.tld/u/\<username\>/o/\<order_id\>/$* | will lead to the information page of the specific order
 *app.host.tld/u/\<username\>/a/\<albumtitle\>/.{20}$* **(\**)** | will check string for the album's collaboration **(\*)** or share strings, if it matches, do the required action (add user as album owner or allow to browse as guest)
 *app.host.tld/register/$* | leads to registration page
+
 **(\*)** *Note: Collaboration url should take the guest to the login/registration page, because it seems more sensible to not let guests collaborate (no safety in that, since can't sign out, etc.).*
-**(\**)** *Note: '\<username\>' in this case refers to the user name of the album creator, edit rights are stored in the model (and are viewable/revokable (revokable only by creator) from ( **TODO:** both or either?) from user settings and/or album settings).*
+
+**(\**)** *Note: '\<username\>' in this case refers to the user name of the album creator, edit rights are stored in the model (and are viewable/revokable (revokable only by creator) from (* **TODO:** *both or either?) from user settings and/or album settings).*
 
 ## Implications:
 
 - Usernames can serve as user IDs.
 
 - Album titles are unique for any one user, **not globally**.
-*Note: This is important, because we cannot have it so that '/album/<album_title>/'
+
+*Note: This is important, because we cannot have it so that '/album/\<album_title\>/'
 is the album url and as a result only one user can have an album called "Florida Trip"*
 
 <hr><hr>
 # Implementation Order
-*(now: feb 10, week 7; due: feb 14, week 7 - **4 days remaining**)*
+*(now: feb 10, week 7; due: feb 14, week 7 - **4 days remaining** )*
 
 1. Database/models functionality. (week 5)
 2. Views. (week 5 - 6)
