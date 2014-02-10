@@ -189,7 +189,7 @@ def photo(request):  # TODO: should be refactored
 
     # Render list page with the images and the form
     template = "photo.html"
-    params = {'images': images,"var": first_id}
+    params = {'images': images,"var": first_id}  # TODO: What if not images?
     return render(request, template, params)
 
 # def album(request):
@@ -209,10 +209,10 @@ def album_form(request):
             newalbum = Album(title=mytitle)
         else:
             newalbum = Album(title=request.POST['title'])
-        # TODO: FOR DEPLOYMENT: Remove line below
+        # FIXME: No hard-coding urls!
         newalbum.public_url_suffix = "http://localhost.foo.fi:8000/public/"+request.user.username+"_"+newalbum.title
-        # FIXME: Suffix is still wrong
-        # TODO: FOR DEPLOYMENT: Uncomment line below
+        # FIXME: Suffix is still wrong!
+        # FIXME: No hard-coding urls!
         #newalbum.public_url_suffix = "http://fotosynteesi.herokuapp.com/public/"+request.user.username+"_"+newalbum.title
         newalbum.collaboration_url_suffix = 'google.com'
         
@@ -386,12 +386,12 @@ def order_submit(request, albumtitle):
         neworder.pid = str(neworder.time_placed)
         neworder.checksum = neworder.checksumfunc()
 
-        ## TODO: DEPLOYMENT: Uncomment the following three lines
+        # FIXME: No hard-coding urls!
         #neworder.success_url = "http://fotosynteesi.herokuapp.com/album/"
         #neworder.cancel_url = "http://fotosynteesi.herokuapp.com/album/"+album.title+"/paycancel"
         #neworder.error_url = "http://fotosynteesi.herokuapp.com/album/"+album.title+"/payerror"
         
-        ## TODO: DEPLOYMENT: Remove the following three lines
+        # FIXME: No hard-coding urls!
         neworder.success_url = "http://localhost.foo.fi:8000/album/"
         neworder.cancel_url = "http://localhost.foo.fi:8000/album/"+album.title+"/paycancel"
         neworder.error_url = "http://localhost.foo.fi:8000/album/"+album.title+"/payerror"
@@ -471,6 +471,7 @@ def publicalbum(request, albumurl):
     # suffix should look something like this: t7E5UEqsjgxFjjFRXw7h
     # public url: http://domain.tld[:port]/user/album/t7E5UEqsjgxFjjFRXw7h
 
+    # FIXME: No hard-coding urls!
     my_public_url_suffix = "http://localhost.foo.fi:8000/public/"+albumurl
     album = get_object_or_404(Album,public_url_suffix=my_public_url_suffix)
     pages = Page.objects.filter(album=album)
@@ -484,6 +485,8 @@ def publicalbum(request, albumurl):
 def publicpage(request,albumurl,pagenumber):
     """Docstring goes here. """
 
+    # FIXME: No hard-coding urls!
+    # FIXME: Not the right idea for suffix!
     my_public_url_suffix = "http://localhost.foo.fi:8000/public/"+albumurl
     album = get_object_or_404(Album,public_url_suffix=my_public_url_suffix)
     page = Page.objects.filter(album=album, number=pagenumber)
