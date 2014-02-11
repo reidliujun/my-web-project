@@ -23,6 +23,15 @@ from django_facebook.decorators import facebook_required_lazy, facebook_required
 from django_facebook.utils import next_redirect, parse_signed_request
 from django.contrib import messages
 
+# Note: Never use 301 (it cannot be undone).
+CODE = {
+    'OK': 200,
+    'Unauthorized': 401,            # User needs to authenticate
+    'Forbidden': 403,               # Regardless of authentication status
+    'Method Not Allowed': 405,      # HTTP methods (GET, etc.)
+    'Internal Server Error': 500,   # Generic error
+}
+
 
 def home(request):
     if request.user.is_authenticated():
