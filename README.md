@@ -164,6 +164,12 @@ URL | Action / View
 is the album url and as a result only one user can have an album called "Florida Trip"*
 
 <hr><hr>
+# Mockups
+![Album View](Fotosynteesi/readme_files/album_view.jpg?raw=true)
+![Page View](Fotosynteesi/readme_files/page_view.jpg?raw=true)
+![Layout Selection View](Fotosynteesi/readme_files/layout_selection.jpg?raw=true)
+
+<hr><hr>
 # Implementation Order
 *(now: feb 10, week 7; due: feb 14, week 7 - **4 days remaining** )*
 
