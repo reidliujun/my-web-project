@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block head %}
+{% load staticfiles %}
+{% endblock head %}
+
+{% block title %}Page List{% endblock title %}
+{% block navbar-active-album %}active{% endblock navbar-active-album %}
+
+{% block content %}
+
+
+			<div class="row">
+
+				<div class="col-xs-6 col-md-3">
+					<div class="layoutstyle1">
+						<div class="setLinkDiv">
+							<a class="thumbnail" href="/album/{{album.title}}/page/{{page.number}}/layout/1">
+								<img class="setThumb" src="{% static 'images/layout1.png' %}" width="240" height="180" >
+							</a>
+						</div>
+
+						<div class="setText">
+															
+							<a class="Seta"  href="/album/{{album.title}}/page/{{page.number}}/layout/1" style="height:100%">
+								<h4>layout 1</h4>		
+							</a>
+						</div>
+
+					</div>
+				</div>
+
+				<div class="col-xs-6 col-md-3">
+					<div class="layoutstyle2">
+						<div class="setLinkDiv">
+							<a class="thumbnail" href="/album/{{album.title}}/page/{{page.number}}/layout/2">
+								<img class="setThumb" src="{% static 'images/layout2.png' %}" width="240" height="180" >
+							</a>
+						</div>
+
+						<div class="setText">
+															
+							<a class="Seta"  href="/album/{{album.title}}/page/{{page.number}}/layout/2" style="height:100%">
+								<h4>layout 2</h4>		
+							</a>
+						</div>
+
+					</div>
+
+				</div>
+
+			</div>
+		
+		
+
+{% endblock content %}
