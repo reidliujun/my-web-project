@@ -7,13 +7,14 @@ https://docs.djangoproject.com/en/1.6/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.6/ref/settings/
 """
+import os
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-import os
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 STATIC_URL = '/static/'
-STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
+STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)  # FIXME: is this right?
 TEMPLATE_DIRS = (os.path.join(BASE_DIR, 'templates'),)
+FIXTURE_DIRS = (os.path.join(BASE_DIR, 'fixtures'),)
 LOGIN_URL = '/login/'
 LOGOUT_URL = '/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -27,10 +28,9 @@ FACEBOOK_APP_SECRET = 'ba60dc8ab335d3a14716bff4e4ee5983'
 SECRET_KEY = '*cf*b#+tv*)up1=i1^(l_oxg+%@#apu%su6yns_uga8fl@z%&w'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True  # TODO: change to False before going 'live'
+DEBUG = True  # bool(os.environ.get('HTTP_HOST', 'localhost.foo.fi:8000'))
 TEMPLATE_DEBUG = True
 ALLOWED_HOSTS = ["*"]
-
 
 
 TEMPLATE_CONTEXT_PROCESSORS = (
@@ -83,7 +83,7 @@ WSGI_APPLICATION = 'Fotosynteesi.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
+        'ENGINE': 'django.db.backends.sqlite3',  # TODO: Check for deployment
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
