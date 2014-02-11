@@ -282,28 +282,28 @@ def albumdetail(request, albumtitle):
 
 def album_delete(request, albumtitle):
     """Delete the album with the albumtitle and redirect to 'album' page. """
-    album = Album.objects.filter(user=request.user, title=albumtitle)
-    images = Image.objects.filter(album=album)
+    album_obj = Album.objects.filter(user=request.user, title=albumtitle)
+    images = Image.objects.filter(album=album_obj)
     # for image in images:
     images.delete()  # FIXME: This is wrong, images are not deleted
-    album.delete()  # TODO: Realistically, albums shouldn't be either immediatl
+    album_obj.delete()  # TODO: Realistically, albums shouldn't be either immediatl
 
     return HttpResponseRedirect(reverse('website.views.album'))
     
 
 def album_page(request, albumtitle):
     """Show the page detail inside one chosen album with its title. """
-    album = get_object_or_404(Album,user=request.user, title=albumtitle)
-    pages = Page.objects.filter(album=album)
+    album_obj = get_object_or_404(Album,user=request.user, title=albumtitle)
+    pages = Page.objects.filter(album=album_obj)
     if not pages:
         next_page = 1
     else:
-        page_objects = Page.objects.filter(album=album)
+        page_objects = Page.objects.filter(album=album_obj)
         page_number = page_objects.aggregate(Max('number'))['number__max']
         next_page = page_number + 1
 
     template = "album_page.html"
-    params = {'album': album, 'pages': pages, 'next_page': next_page}
+    params = {'album': album_obj, 'pages': pages, 'next_page': next_page}
     return render(request, template, params)
 
 
@@ -315,11 +315,11 @@ def page_layout(request, albumtitle, pagenumber):
     matter if the user upload photos or not.
 
     """
-    album = get_object_or_404(Album, user=request.user, title=albumtitle)
-    alb_page = Page.objects.create(album=album, number=pagenumber, layout=1)
+    album_obj = get_object_or_404(Album, user=request.user, title=albumtitle)
+    alb_page = Page.objects.create(album=album_obj, number=pagenumber, layout=1)
 
     template = "page_layout.html"
-    params = {'album': album, 'page': alb_page}
+    params = {'album': album_obj, 'page': alb_page}
     return render(request, template, params)
 
 
@@ -329,8 +329,8 @@ def photoadd(request, albumtitle, pagenumber, layoutstyle):
 
     """
 
-    album=get_object_or_404(Album,user=request.user, title=albumtitle)
-    page=get_object_or_404(Page, album=album, number=pagenumber)
+    album_obj=get_object_or_404(Album,user=request.user, title=albumtitle)
+    page = get_object_or_404(Page, album=album_obj, number=pagenumber)
     page.layout = layoutstyle
 
     if request.method == 'POST':
@@ -344,35 +344,35 @@ def photoadd(request, albumtitle, pagenumber, layoutstyle):
         #add user
         user = User.objects.get(username=request.user.username)
         newimg.user.add(user)
-        newimg.album.add(album)
+        newimg.album.add(album_obj)
         newimg.page.add(page)
         # Redirect to the images list after POST
         return HttpResponseRedirect(reverse('website.views.photoadd', 
-            kwargs={'albumtitle':album.title, 'pagenumber': page.number, 'layoutstyle':page.layout}))
+            kwargs={'albumtitle':album_obj.title, 'pagenumber': page.number, 'layoutstyle':page.layout}))
 
-    images = Image.objects.filter(album=album,page=page)
+    images = Image.objects.filter(album=album_obj,page=page)
 
     return render_to_response(
-        'photoadd.html', {'images': images, 'album': album, 'page': page}, 
+        'photoadd.html', {'images': images, 'album': album_obj, 'page': page},
         context_instance=RequestContext(request))
 
 
 def page_detail(request, albumtitle, pagenumber):
     """Show the page with its photo in the webpage. """
-    album = get_object_or_404(Album, user=request.user, title=albumtitle)
-    page = Page.objects.filter(album=album, number=pagenumber)
-    images = Image.objects.filter(user=request.user, album=album, page=page)
+    album_obj = get_object_or_404(Album, user=request.user, title=albumtitle)
+    page = Page.objects.filter(album=album_obj, number=pagenumber)
+    images = Image.objects.filter(user=request.user, album=album_obj, page=page)
 
     template = "page_detail.html"
-    params = {'album': album, 'page': page, 'images': images}
+    params = {'album': album_obj, 'page': page, 'images': images}
     return render(request, template, params)
 
 
 def page_delete(request, albumtitle, pagenumber):
     """Delete the selected page. """
-    album = get_object_or_404(Album, user=request.user, title=albumtitle)
-    page = Page.objects.filter(album=album, number=pagenumber)
-    images = Image.objects.filter(user=request.user, album=album, page=page)
+    album_obj = get_object_or_404(Album, user=request.user, title=albumtitle)
+    page = Page.objects.filter(album=album_obj, number=pagenumber)
+    images = Image.objects.filter(user=request.user, album=album_obj, page=page)
     images.delete()
     page.delete()
     viewname = 'website.views.album_page', "kwargs={'albumtitle':album.title}"
@@ -383,10 +383,10 @@ def page_delete(request, albumtitle, pagenumber):
 def album_order(request, albumtitle):
     """Order the album by filling a order form. """
 
-    album = get_object_or_404(Album,user=request.user, title=albumtitle)
+    album_obj = get_object_or_404(Album,user=request.user, title=albumtitle)
 
     template = "album_order.html"
-    params = {'album': album}
+    params = {'album': album_obj}
     return render(request, template, params)
 
 
@@ -401,7 +401,7 @@ def order_submit(request, albumtitle):
 
     """
 
-    album = get_object_or_404(Album, user=request.user, title=albumtitle)
+    album_obj = get_object_or_404(Album, user=request.user, title=albumtitle)
     if request.method == "POST":
         # set the new order object
         neworder = Order.objects.create(
@@ -413,7 +413,7 @@ def order_submit(request, albumtitle):
             country=request.POST.get('country', False),
             item_count=request.POST.get('item_count', False),
             sid="group42",
-            album=album)
+            album=album_obj)
         # neworder = Order(album = album, user=request.user)
 
         #set the pid for each independent order
@@ -431,13 +431,13 @@ def order_submit(request, albumtitle):
         
         # FIXME: No hard-coding urls!
         neworder.success_url = "http://localhost.foo.fi:8000/album/"
-        neworder.cancel_url = "http://localhost.foo.fi:8000/album/"+album.title+"/paycancel"
-        neworder.error_url = "http://localhost.foo.fi:8000/album/"+album.title+"/payerror"
+        neworder.cancel_url = "http://localhost.foo.fi:8000/album/"+album_obj.title+"/paycancel"
+        neworder.error_url = "http://localhost.foo.fi:8000/album/"+album_obj.title+"/payerror"
 
         neworder.save()
 
         template = "order_submit.html"
-        params = {'album': album, 'order': neworder}
+        params = {'album': album_obj, 'order': neworder}
     else:
         template = "album.html"
         params = {}
@@ -492,8 +492,8 @@ def facebook_post(request, graph, albumtitle):
 
     """
 
-    album = get_object_or_404(Album, user=request.user, title=albumtitle)
-    message = album.public_url_suffix
+    album_obj = get_object_or_404(Album, user=request.user, title=albumtitle)
+    message = album_obj.public_url_suffix
     if message:
         graph.set('me/feed', message=message)
         messages.info(request, 'Posted the message to your wall.')
@@ -519,8 +519,8 @@ def publicalbum(request, albumurl):
 
     # FIXME: No hard-coding urls!
     my_public_url_suffix = "http://localhost.foo.fi:8000/public/"+albumurl
-    album = get_object_or_404(Album,public_url_suffix=my_public_url_suffix)
-    pages = Page.objects.filter(album=album)
+    album_obj = get_object_or_404(Album,public_url_suffix=my_public_url_suffix)
+    pages = Page.objects.filter(album=album_obj)
 
     template = "public_album.html"
     params = {'pages': pages, 'url':albumurl}
@@ -534,9 +534,9 @@ def publicpage(request,albumurl,pagenumber):
     # FIXME: No hard-coding urls!
     # FIXME: Not the right idea for suffix!
     my_public_url_suffix = "http://localhost.foo.fi:8000/public/"+albumurl
-    album = get_object_or_404(Album,public_url_suffix=my_public_url_suffix)
-    page = Page.objects.filter(album=album, number=pagenumber)
-    images = Image.objects.filter(album=album, page=page)
+    album_obj = get_object_or_404(Album,public_url_suffix=my_public_url_suffix)
+    page = Page.objects.filter(album=album_obj, number=pagenumber)
+    images = Image.objects.filter(album=album_obj, page=page)
 
     return render_to_response(
-        'public_page.html', {'album': album, 'page': page, 'images': images})
+        'public_page.html', {'album': album_obj, 'page': page, 'images': images})
