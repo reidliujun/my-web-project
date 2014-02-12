@@ -1,8 +1,9 @@
-# -*- coding: utf-8 -*-
-from django.db import models as m
+#!/usr/bin/env python
+# coding: utf-8
 from django.contrib.auth.models import User
-from django.db.models.signals import pre_delete
-from django.dispatch.dispatcher import receiver
+from django.db import models as m
+from django.db import IntegrityError
+from django.utils.text import slugify
 import datetime
 from uuid import uuid4
 
@@ -16,11 +17,16 @@ COST_PER_PAGE = 1.35  # in BASE_CURRENCY
 
 class Album(m.Model):
     """Docstring goes here. """
+
+    # this allows for us to use user.albums to get a user's albums
     user = m.ForeignKey(User, related_name='albums')
+
+    # this feature adds some complications to the project, may want to drop
     # collaborators = m.ManyToManyField(User)
-    # FIXME: neither blank=False nor null=False works, why?
-    title = m.SlugField(blank=False, null=False)
-    public_url_suffix = m.SlugField(max_length=20, blank=True)
+
+    title_string = m.CharField(max_length=50)
+    title_slug = m.SlugField()
+    public_url_suffix = m.SlugField(max_length=32, blank=True)
     collaboration_url_suffix = m.SlugField(max_length=20, blank=True)
 
     def last_page_number(self):
@@ -77,14 +83,21 @@ class Album(m.Model):
         else:
             raise ValueError  # TODO: remove after testing (make actual tests)
 
-
     def calculate_item_cost(self):
         page_count = Page.objects.filter(album=self).count()
         return BASE_UNIT_COST + COST_PER_PAGE * page_count
 
+    def save(self, *args, **kwargs):
+        """Converts title_string to unicode and creates title_slug on save. """
+        if self.title_string == '':
+            raise IntegrityError("self.title_string cannot be blank.")
+        self.title_string = unicode(self.title_string)
+        self.title_slug = slugify(self.title_string)
+        super(Album, self).save(*args, **kwargs)
+
     def __unicode__(self):
         """The string representation of this object is its title. """
-        return self.title
+        return self.title_string
 
 
 class Order(m.Model):
