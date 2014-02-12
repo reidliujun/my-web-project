@@ -8,7 +8,19 @@
 {% block title %}Image List{% endblock %}
 {% block navbar-active-album %}active{% endblock %}
 
+{% url 'Single Album View' album_obj.title as view_single_album_url %}
+
 {% block content %}
+    <p>
+    You are looking at (page {{ page_obj.number }}) of (album "{{ album_title }}").
+    It is using the (layout {{ page_obj.layout }}) style.
+    </p>
+{#    <p>#}
+{#    Back to album: <a href="{{ view_single_album_url }}">link</a>#}
+{#    </p>#}
+{% endblock %}
+
+{% block comment %}
 
 	<div class="row">
 		<div class="col-lg-12">
@@ -38,4 +50,4 @@
 
 
 		</div>
-{% endblock %}
+{% endblock comment %}
