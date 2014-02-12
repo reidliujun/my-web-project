@@ -5,7 +5,7 @@ from django.shortcuts import render, redirect, render_to_response, get_object_or
 from django.core.context_processors import csrf
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, HttpResponseRedirect,  HttpResponseServerError
+from django.http import HttpResponse, HttpResponseRedirect,  HttpResponseServerError, Http404
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.contrib.auth.models import User
@@ -227,18 +227,12 @@ def album_form(request):
             newalbum = Album(title=mytitle)
         else:
             newalbum = Album(title=request.POST['title'])
-        # FIXME: No hard-coding urls!
-        # Assign the public url to album attribute.
-        newalbum.public_url_suffix = "http://localhost.foo.fi:8000/public/"+request.user.username+"_"+newalbum.title
-        # FIXME: Suffix is still wrong!
-        # FIXME: No hard-coding urls!
-        #newalbum.public_url_suffix = "http://fotosynteesi.herokuapp.com/public/"+request.user.username+"_"+newalbum.title
-        newalbum.collaboration_url_suffix = 'google.com'
-        
+
         #get the user object
-        newalbum.save()
-        user = User.objects.get(username=request.user.username)
-        newalbum.user.add(user)
+        # newalbum.save()
+        # user = User.objects.get(username=request.user)
+        # newalbum.user.add(user)
+        Album.objects.create(user=request.user, title=request.POST['title'])
         return HttpResponseRedirect(reverse('website.views.album'))
     albums = Album.objects.filter(user=request.user)
 
@@ -291,35 +285,56 @@ def album_delete(request, albumtitle):
     return HttpResponseRedirect(reverse('website.views.album'))
     
 
-def album_page(request, albumtitle):
+def single_album_view(request, album_title):
     """Show the page detail inside one chosen album with its title. """
-    album_obj = get_object_or_404(Album,user=request.user, title=albumtitle)
-    pages = Page.objects.filter(album=album_obj)
-    if not pages:
-        next_page = 1
-    else:
-        page_objects = Page.objects.filter(album=album_obj)
-        page_number = page_objects.aggregate(Max('number'))['number__max']
-        next_page = page_number + 1
+    album_obj = get_object_or_404(Album, title=album_title)
 
-    template = "album_page.html"
-    params = {'album': album_obj, 'pages': pages, 'next_page': next_page}
+    if request.user == album_obj.user:
+        access_right = 'owner'
+    elif request.user in album_obj.collaborators:
+        access_right = 'collaborator'
+    elif request.REQUEST['collaborator_url_suffix'] == album_obj.collaboration_url_suffix:
+        album_obj.collaborators = request.user
+        access_right = 'collaborator'
+    elif request.REQUEST['public_url_suffix'] == album_obj.public_url_suffix:
+        access_right = 'guest'
+    else:
+        return HttpResponse(status=CODE["Unauthorized"])
+
+    template = "single_album_view.html"
+    params = {'album_obj': album_obj, 'access_right': access_right}
     return render(request, template, params)
 
 
-def page_layout(request, albumtitle, pagenumber):
-    """ Choose the possible layout of the page, and the layout attribute of the
-    page will be given.
+def single_page_view(request, album_title, page_number):
 
-    Note: When a user clicks the layout style, the page will be created no
-    matter if the user upload photos or not.
+    album_obj = Album.objects.get(title=album_title)  # TODO: rights
+    page_obj = Page.objects.get(album=album_obj, number=page_number)
 
-    """
-    album_obj = get_object_or_404(Album, user=request.user, title=albumtitle)
-    alb_page = Page.objects.create(album=album_obj, number=pagenumber, layout=1)
+    template = "page_detail.html"
+    params = {'page_obj': page_obj, 'album_title': album_title}
+    return render(request, template, params)
 
-    template = "page_layout.html"
-    params = {'album': album_obj, 'page': alb_page}
+
+def add_new_page(request, album_obj):
+    # album_obj = get_object_or_404(Album, user=request.user, title=album_title)
+    new_page = Page.objects.create(album=album_obj)
+    first_free_page_number = new_page.get_last() + 1
+    album_obj.add_page(new_page, None)
+
+    if new_page.number.__class__ is None:
+        raise TypeError("Page number of new page is not an int.")
+
+    return select_page_layout(request, new_page)
+
+
+def select_page_layout(request, page_obj):
+    """Allows user to select a new layout for a page. """
+    # album_obj = get_object_or_404(Album, user=request.user, title=albumtitle)
+    # alb_page = Page.objects.get(id=page_id)
+
+    template = "select_page_layout.html"
+    params = {'album': page_obj.album, 'page': page_obj}
     return render(request, template, params)
 
 
@@ -329,7 +344,7 @@ def photoadd(request, albumtitle, pagenumber, layoutstyle):
 
     """
 
-    album_obj=get_object_or_404(Album,user=request.user, title=albumtitle)
+    album_obj = get_object_or_404(Album,user=request.user, title=albumtitle)
     page = get_object_or_404(Page, album=album_obj, number=pagenumber)
     page.layout = layoutstyle
 
@@ -357,15 +372,15 @@ def photoadd(request, albumtitle, pagenumber, layoutstyle):
         context_instance=RequestContext(request))
 
 
-def page_detail(request, albumtitle, pagenumber):
-    """Show the page with its photo in the webpage. """
-    album_obj = get_object_or_404(Album, user=request.user, title=albumtitle)
-    page = Page.objects.filter(album=album_obj, number=pagenumber)
-    images = Image.objects.filter(user=request.user, album=album_obj, page=page)
+# def page_detail(request, albumtitle, pagenumber):
+#     """Show the page with its photo in the webpage. """
+#     album_obj = get_object_or_404(Album, user=request.user, title=albumtitle)
+#     page = Page.objects.filter(album=album_obj, number=pagenumber)
+#     images = Image.objects.filter(user=request.user, album=album_obj, page=page)
 
-    template = "page_detail.html"
-    params = {'album': album_obj, 'page': page, 'images': images}
-    return render(request, template, params)
+    # template = "page_detail.html"
+    # params = {'album': album_obj, 'page': page, 'images': images}
+    # return render(request, template, params)
 
 
 def page_delete(request, albumtitle, pagenumber):
@@ -375,7 +390,7 @@ def page_delete(request, albumtitle, pagenumber):
     images = Image.objects.filter(user=request.user, album=album_obj, page=page)
     images.delete()
     page.delete()
-    viewname = 'website.views.album_page', "kwargs={'albumtitle':album.title}"
+    viewname = 'website.views.single_album_view', "kwargs={'albumtitle':album.title}"
 
     return HttpResponseRedirect(reverse(viewname))
 
@@ -422,7 +437,7 @@ def order_submit(request, albumtitle):
         neworder.total_cost = str(10*int(neworder.item_count))
         #use time_placed as pid, then it will be unique to each pid.
         neworder.pid = str(neworder.time_placed)
-        neworder.checksum = neworder.checksumfunc()
+        neworder.checksum = neworder.generate_checksum()
 
         # FIXME: No hard-coding urls!
         #neworder.success_url = "http://fotosynteesi.herokuapp.com/album/"
