@@ -437,7 +437,7 @@ def order_submit(request, albumtitle):
         neworder.total_cost = str(10*int(neworder.item_count))
         #use time_placed as pid, then it will be unique to each pid.
         neworder.pid = str(neworder.time_placed)
-        neworder.checksum = neworder.checksumfunc()
+        neworder.checksum = neworder.generate_checksum()
 
         # FIXME: No hard-coding urls!
         #neworder.success_url = "http://fotosynteesi.herokuapp.com/album/"

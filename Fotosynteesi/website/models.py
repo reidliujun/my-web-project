@@ -7,6 +7,7 @@ import datetime
 
 # Constants
 SELLER_ID = 'group42'
+CHECKSUM_TOKEN = '01d46c1d7f4cbe9686f7d1d8aec559d6'
 BASE_CURRENCY = 'EUR'
 BASE_UNIT_COST = 22.5  # in BASE_CURRENCY
 COST_PER_PAGE = 1.35  # in BASE_CURRENCY
@@ -16,7 +17,8 @@ class Album(m.Model):
     """Docstring goes here. """
     user = m.ForeignKey(User, related_name='albums')
     # collaborators = m.ManyToManyField(User)
-    title = m.SlugField(default="Album_%s" % id)
+    # FIXME: neither blank=False nor null=False works, why?
+    title = m.SlugField(blank=False, null=False)
     public_url_suffix = m.SlugField(max_length=20, blank=True)
     collaboration_url_suffix = m.SlugField(max_length=20, blank=True)
 
@@ -44,11 +46,14 @@ class Album(m.Model):
         last_page_number = last_page_object.number
 
         if not last_page_number.__class__ == int:
-            raise TypeError("Get page number failed, got %s instead of int." % last_page_number.__class__)
+            errmsg = "Get page number failed, got %s instead of int."
+            raise TypeError(errmsg % last_page_number.__class__)
 
         return last_page_number
 
     def add_page(self, page_obj, location_index):
+        """
+        """
 
         if location_index is None:
             location_index = self.last_page_number() + 1
@@ -56,7 +61,8 @@ class Album(m.Model):
         page_obj.number = location_index
 
         if page_obj.number.__class__ != int:
-            raise TypeError("Add page failed, page number was reported as type %s." % page_obj.number.__class__)
+            errmsg = "Add page failed, page number was reported as type %s."
+            raise TypeError(errmsg % page_obj.number.__class__)
         if page_obj.number < 0:
             raise ValueError("Add page failed, tried add to negative index.")
 
@@ -112,20 +118,12 @@ class Order(m.Model):
     # Payment ID to identify the payment used for this order
     pid = m.CharField(max_length=255)
 
-    # Seller ID == 'group42'
     sid = m.CharField(max_length=255, default=SELLER_ID)
 
     success_url = m.CharField(max_length=255, blank=True, null=True)
     cancel_url = m.CharField(max_length=255, blank=True, null=True)
     error_url = m.CharField(max_length=255, blank=True, null=True)
     checksum = m.CharField(max_length=255)
-    # order_status = m.CharField(max_length=255) # need to think about this
-    # time_placed = m.DateTimeField()
-    # def __unicode__(self):
-    #     return self.user
-
-
-
 
     def get_order_details(self):
         """Returns a list of user-relevant order details for template use. """
@@ -150,16 +148,26 @@ class Order(m.Model):
         ]
         return details
 
-    def checksumfunc(self):
+    def generate_checksum(self):
         """Generate the checksum value according to user pid, sid, amount and
         the token, will be used for verification in the order system.
 
         """
-        import md5
-        checksumstr = "pid="+self.pid+"&sid="+self.sid+"&amount="+self.total_cost+"&token=01d46c1d7f4cbe9686f7d1d8aec559d6"
-        mm = md5.new(checksumstr)  # FIXME: the module md5 is deprecated
+        import hashlib
+        amount = unicode(self.total_cost)
+        checksumstr = ("pid=" + self.pid +
+                       "&sid=" + self.sid +
+                       "&amount=" + amount +
+                       "&token=" + CHECKSUM_TOKEN)
+
+        mm = hashlib.md5.new(checksumstr)
         self.checksum = mm.hexdigest()
         return self.checksum
+        # import md5
+        # checksumstr = "pid="+self.pid+"&sid="+self.sid+"&amount="+self.total_cost+"&token=01d46c1d7f4cbe9686f7d1d8aec559d6"
+        # mm = md5.new(checksumstr)  # FIXME: the module md5 is deprecated
+        # self.checksum = mm.hexdigest()
+        # return self.checksum
 
     def __unicode__(self):
         return "%s copies of %s ordered on %s" % (
@@ -196,10 +204,6 @@ class Page(m.Model):
 
     def __unicode__(self):
         return str(self.number) + " in "  # + self.album.title
-
-# class Photo(m.Model):
-#     album = m.ManyToManyField(Album)
-#     page = m.ManyToManyRel(Page)
 
 
 class Image(m.Model):
