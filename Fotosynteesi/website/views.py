@@ -227,18 +227,12 @@ def album_form(request):
             newalbum = Album(title=mytitle)
         else:
             newalbum = Album(title=request.POST['title'])
-        # FIXME: No hard-coding urls!
-        # Assign the public url to album attribute.
-        newalbum.public_url_suffix = "http://localhost.foo.fi:8000/public/"+request.user.username+"_"+newalbum.title
-        # FIXME: Suffix is still wrong!
-        # FIXME: No hard-coding urls!
-        #newalbum.public_url_suffix = "http://fotosynteesi.herokuapp.com/public/"+request.user.username+"_"+newalbum.title
-        newalbum.collaboration_url_suffix = 'google.com'
-        
+
         #get the user object
-        newalbum.save()
-        user = User.objects.get(username=request.user.username)
-        newalbum.user.add(user)
+        # newalbum.save()
+        # user = User.objects.get(username=request.user)
+        # newalbum.user.add(user)
+        Album.objects.create(user=request.user, title=request.POST['title'])
         return HttpResponseRedirect(reverse('website.views.album'))
     albums = Album.objects.filter(user=request.user)
 
