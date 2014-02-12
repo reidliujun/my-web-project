@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.db.models.signals import pre_delete
 from django.dispatch.dispatcher import receiver
 import datetime
+from uuid import uuid4
 
 # Constants
 SELLER_ID = 'group42'
@@ -65,6 +66,17 @@ class Album(m.Model):
             raise TypeError(errmsg % page_obj.number.__class__)
         if page_obj.number < 0:
             raise ValueError("Add page failed, tried add to negative index.")
+
+    def generate_url_suffix(self, which):
+        """Generates a random string, 32 characters in length, and saves it in
+        the appropriate variable within the Album object. """
+        if which == 'public':
+            self.public_url_suffix = str(uuid4()).replace('-', '')
+        elif which == 'collaboration':
+            self.collaboration_url_suffix = str(uuid4()).replace('-', '')
+        else:
+            raise ValueError  # TODO: remove after testing (make actual tests)
+
 
     def calculate_item_cost(self):
         page_count = Page.objects.filter(album=self).count()
