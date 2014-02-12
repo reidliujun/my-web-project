@@ -306,16 +306,14 @@ def single_album_view(request, album_title):
     return render(request, template, params)
 
 
-def page_layout(request, albumtitle, pagenumber):
-    """ Choose the possible layout of the page, and the layout attribute of the
-    page will be given.
+def single_page_view(request, album_title, page_number):
 
-    Note: When a user clicks the layout style, the page will be created no
-    matter if the user upload photos or not.
+    album_obj = Album.objects.get(title=album_title)  # TODO: rights
+    page_obj = Page.objects.get(album=album_obj, number=page_number)
 
-    """
-    album_obj = get_object_or_404(Album, user=request.user, title=albumtitle)
-    alb_page = Page.objects.create(album=album_obj, number=pagenumber, layout=1)
+    template = "page_detail.html"
+    params = {'page_obj': page_obj, 'album_title': album_title}
+    return render(request, template, params)
 
     template = "page_layout.html"
     params = {'album': album_obj, 'page': alb_page}
