@@ -285,19 +285,24 @@ def album_delete(request, albumtitle):
     return HttpResponseRedirect(reverse('website.views.album'))
     
 
-def album_page(request, albumtitle):
+def single_album_view(request, album_title):
     """Show the page detail inside one chosen album with its title. """
-    album_obj = get_object_or_404(Album,user=request.user, title=albumtitle)
-    pages = Page.objects.filter(album=album_obj)
-    if not pages:
-        next_page = 1
-    else:
-        page_objects = Page.objects.filter(album=album_obj)
-        page_number = page_objects.aggregate(Max('number'))['number__max']
-        next_page = page_number + 1
+    album_obj = get_object_or_404(Album, title=album_title)
 
-    template = "album_page.html"
-    params = {'album': album_obj, 'pages': pages, 'next_page': next_page}
+    if request.user == album_obj.user:
+        access_right = 'owner'
+    elif request.user in album_obj.collaborators:
+        access_right = 'collaborator'
+    elif request.REQUEST['collaborator_url_suffix'] == album_obj.collaboration_url_suffix:
+        album_obj.collaborators = request.user
+        access_right = 'collaborator'
+    elif request.REQUEST['public_url_suffix'] == album_obj.public_url_suffix:
+        access_right = 'guest'
+    else:
+        return HttpResponse(status=CODE["Unauthorized"])
+
+    template = "single_album_view.html"
+    params = {'album_obj': album_obj, 'access_right': access_right}
     return render(request, template, params)
 
 
