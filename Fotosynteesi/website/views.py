@@ -22,6 +22,9 @@ from django_facebook.api import get_persistent_graph, require_persistent_graph
 from django_facebook.decorators import facebook_required_lazy, facebook_required
 from django_facebook.utils import next_redirect, parse_signed_request
 from django.contrib import messages
+rom django.core import serializers
+from django.utils import simplejson
+from django.db import OperationalError
 
 # Note: Never use 301 (it cannot be undone).
 CODE = {
@@ -219,24 +222,57 @@ def photo(request):  # TODO: should be refactored
 
 def album_form(request):
     """Input the album title, when 'POST', create the new album. """
-    if request.method == 'POST':
-        #get the album object
+
+    '''Simple ajax deal with the album title conflict issue. '''
+    message = {"status":""}
+    template = "albumform.html"
+    params = {'message': 'Album already have, choose another title!'} 
+    if request.is_ajax():
         if " " in request.POST['title']:
             title_array = request.POST['title'].split(" ")
             mytitle = "_".join(title_array)
-            newalbum = Album(title=mytitle)
         else:
-            newalbum = Album(title=request.POST['title'])
+            mytitle=request.POST['title']
+        if not Album.objects.filter(user=request.user, title=mytitle):
+        # if request.POST['title'] == 'wangyi':
+            message["status"] = "OK to create"
+        else:
+            message["status"] = "fail to create"
+        '''Provide message to html page as json. '''
+        json = simplejson.dumps(message)
+        return HttpResponse(json, content_type = 'application/json')
 
+    if request.method == 'POST':
+        if " " in request.POST['title']:
+            '''If title input has space, replace space with '_'. 
+            Noticed: it is not a good solution now, should be fixed in the future.'''
+            title_array = request.POST['title'].split(" ")
+            mytitle = "_".join(title_array)
+            if not Album.objects.filter(user=request.user, title=mytitle):
+                newalbum = Album(title=mytitle)
+            else:
+                return render(request,template,params)
+        else:
+            mytitle = request.POST['title']
+            if not Album.objects.filter(user=request.user, title=mytitle):
+                newalbum = Album(title=mytitle)
+                newalbum = Album(title=request.POST['title'])
+            else:
+                return render(request,template,params)
+        # FIXME: No hard-coding urls!
+        '''Assign the public url to album attribute. '''
+        newalbum.public_url_suffix = "http://localhost.foo.fi:8000/public/"+request.user.username+"_"+newalbum.title
+        # FIXME: Suffix is still wrong!
+        # FIXME: No hard-coding urls!
+        #newalbum.public_url_suffix = "http://fotosynteesi.herokuapp.com/public/"+request.user.username+"_"+newalbum.title
+        newalbum.collaboration_url_suffix = 'google.com'
+        
         #get the user object
-        # newalbum.save()
-        # user = User.objects.get(username=request.user)
-        # newalbum.user.add(user)
-        Album.objects.create(user=request.user, title=request.POST['title'])
+        newalbum.save()
+        user = User.objects.get(username=request.user.username)
+        newalbum.user.add(user)
         return HttpResponseRedirect(reverse('website.views.album'))
     albums = Album.objects.filter(user=request.user)
-
-    template = "albumform.html"
     return render(request, template)
 
 
@@ -339,34 +375,56 @@ def select_page_layout(request, page_obj):
 
 
 def photoadd(request, albumtitle, pagenumber, layoutstyle):
-    """Add photo by using 'file' type of input tag, and the photo is added
-    according to the album, page as well as user.
+    '''Add photo by using 'file' type of input tag, 
+    and the photo is added according to the album, page as well as user.'''
 
-    """
-
-    album_obj = get_object_or_404(Album,user=request.user, title=albumtitle)
-    page = get_object_or_404(Page, album=album_obj, number=pagenumber)
+    album=get_object_or_404(Album,user=request.user, title=albumtitle)
+    page=get_object_or_404(Page, album=album, number=pagenumber)
     page.layout = layoutstyle
+    message = {"status":""}
+    images=Image.objects.filter(user=request.user)
+    if request.is_ajax():
+        if request.POST['setting']=='set':
+            if Image.objects.filter(user=request.user, title=request.POST['title']):
+                message["status"]="get the image!"
+                setimg=Image.objects.get(user=request.user, title=request.POST['title'])
+                setimg.album.add(album)
+                setimg.page.add(page)
+            else:
+                message["status"]="no image!"
+                return HttpResponse("error get the image")
+        else:
+            if Image.objects.filter(user=request.user, title=request.POST['title']):
+                message["status"]="get the image!"
+                setimg=Image.objects.get(user=request.user, title=request.POST['title'])
+                # setimg.album.remove(album)
+                # setimg.page.remove(page)
+            else:
+                message["status"]="no image!"
+                return HttpResponse("error get the image")
 
-    if request.method == 'POST':
+        json = simplejson.dumps(message)
+        return HttpResponse(json, content_type = 'application/json')
 
-        #get the image object
-        newimg = Image(imgfile = request.FILES['imgfile'])
-        newtitle = request.FILES['imgfile'].name
-        newimg.title = newtitle.split('.')[0]
-        newimg.save()
+    # if request.method == 'POST':
 
-        #add user
-        user = User.objects.get(username=request.user.username)
-        newimg.user.add(user)
-        newimg.album.add(album_obj)
-        newimg.page.add(page)
-        # Redirect to the images list after POST
-        return HttpResponseRedirect(reverse('website.views.photoadd', 
-            kwargs={'albumtitle':album_obj.title, 'pagenumber': page.number, 'layoutstyle':page.layout}))
+    #     #get the image object
+    #     newimg = Image(imgfile = request.FILES['imgfile'])
+    #     newtitle = request.FILES['imgfile'].name
+    #     newimg.title = newtitle.split('.')[0]
+    #     newimg.save()
 
-    images = Image.objects.filter(album=album_obj,page=page)
+    #     #add user
+    #     user = User.objects.get(username=request.user.username)
+    #     newimg.user.add(user)
+    #     newimg.album.add(album)
+    #     newimg.page.add(page)
+    #     # Redirect to the images list after POST
+    #     return HttpResponseRedirect(reverse('website.views.photoadd', 
+    #         kwargs={'albumtitle':album.title, 'pagenumber': page.number, 'layoutstyle':page.layout}))
 
+    # images = Image.objects.filter(album=album,page=page)
+    
     return render_to_response(
         'photoadd.html', {'images': images, 'album': album_obj, 'page': page},
         context_instance=RequestContext(request))

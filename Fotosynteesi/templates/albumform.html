@@ -19,7 +19,12 @@
 					{% csrf_token %}
 					<div class="form-group">
 					    <label for="inputtitlename">Input title name:</label>
-					    <input type="text" class="form-control" name="title" id="title" required placeholder="Enter Album Title">
+					    <input type="text" class="form-control" name="title" id="albumadd_title" required placeholder="Enter Album Title">
+					    <div id="result1">
+					    	{{message}}
+						</div>
+						<div id="result2">
+						</div>
 					</div>
 					<input class="btn btn-default" type="submit" value="Add" /></p>
 				</form>
