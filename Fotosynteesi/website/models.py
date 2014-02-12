@@ -5,15 +5,67 @@ from django.db.models.signals import pre_delete
 from django.dispatch.dispatcher import receiver
 import datetime
 
+# Constants
+SELLER_ID = 'group42'
+BASE_CURRENCY = 'EUR'
+BASE_UNIT_COST = 22.5  # in BASE_CURRENCY
+COST_PER_PAGE = 1.35  # in BASE_CURRENCY
+
 
 class Album(m.Model):
     """Docstring goes here. """
-    title = m.CharField(max_length=255)
-    public_url_suffix = m.CharField(max_length=255)
-    collaboration_url_suffix = m.CharField(max_length=255)
-    user = m.ManyToManyField(User)
+    user = m.ForeignKey(User, related_name='albums')
+    # collaborators = m.ManyToManyField(User)
+    title = m.SlugField(default="Album_%s" % id)
+    public_url_suffix = m.SlugField(max_length=20, blank=True)
+    collaboration_url_suffix = m.SlugField(max_length=20, blank=True)
+
+    def last_page_number(self):
+        """Helper function for add_page().
+
+        """
+        # Query set containing all page objects / (this hits database)
+        pp_all_qset = Page.objects.select_related('album')
+
+        # Query set containing all page objects in this album
+        pp_album_qset = pp_all_qset.filter(album=self)
+
+        # Query set containing all page objects in this album rev sorted by #
+        pp_album_qset_sorted = pp_album_qset.order_by('-number')
+
+        # Now we can do many things: last page number, etc.
+
+        # List containing all page objects in this album rev sorted by #
+        pp_album_list_sorted = list(pp_album_qset_sorted)
+
+        # First page object from the reverse sorted list
+        last_page_object = pp_album_list_sorted[0]
+
+        last_page_number = last_page_object.number
+
+        if not last_page_number.__class__ == int:
+            raise TypeError("Get page number failed, got %s instead of int." % last_page_number.__class__)
+
+        return last_page_number
+
+    def add_page(self, page_obj, location_index):
+
+        if location_index is None:
+            location_index = self.last_page_number() + 1
+
+        page_obj.number = location_index
+
+        if page_obj.number.__class__ != int:
+            raise TypeError("Add page failed, page number was reported as type %s." % page_obj.number.__class__)
+        if page_obj.number < 0:
+            raise ValueError("Add page failed, tried add to negative index.")
+
+    def calculate_item_cost(self):
+        page_count = Page.objects.filter(album=self).count()
+        return BASE_UNIT_COST + COST_PER_PAGE * page_count
 
     def __unicode__(self):
+        """The string representation of this object is its title. """
         return self.title
 
 
@@ -29,12 +81,9 @@ class Order(m.Model):
     on a per order basis, as users are free to order their albums to whom ever
     they would like to. (default: last used values)
 
-    item_cost -- (base cost) + (# of pages in the album) * (page cost)
-
+    item_cost -- (BASE_UNIT_COST) + (# of pages in the album) * (COST_PER_PAGE)
     shipping_cost -- (country coefficient) * (order weight)
-
     total_cost -- item_count * item_cost + shipping_cost
-
     estimated_arrival_date -- Calculated based on country shipped to.
 
     """
@@ -50,23 +99,21 @@ class Order(m.Model):
 
     # Item names, counts, costs, and relevant dates/times
     item_count = m.PositiveSmallIntegerField(default=1)  # TODO: multipl albums
-    order_weight = m.FloatField(default=50)  # TODO: item_count * album pages
     currency = m.CharField(max_length=3, default="EUR")
-    item_cost = m.FloatField(default=55)  # TODO: Change this to do the math.
+    item_cost = m.FloatField(default=BASE_UNIT_COST)  # TODO: Change this to do the math.
     shipping_cost = m.FloatField(default=10)  # TODO: calculate this
     total_cost = m.FloatField(default=65)  # TODO: make this calculate
     # TODO: status choices
     status = m.CharField(max_length=255, default="Awaiting confirmation")
-    time_placed = m.DateTimeField('Order time', default=datetime.datetime.now())
+    time_placed = m.DateTimeField(default=datetime.datetime.now())
     # TODO: should do math
-    estimated_arrival_date = m.DateTimeField('Estimated arrival date',
-                                             default=datetime.datetime.now()+datetime.timedelta(days=10))
+    estimated_arrival_date = m.DateTimeField(default=datetime.datetime.now()+datetime.timedelta(days=10))
 
     # Payment ID to identify the payment used for this order
     pid = m.CharField(max_length=255)
 
     # Seller ID == 'group42'
-    sid = m.CharField(max_length=255)
+    sid = m.CharField(max_length=255, default=SELLER_ID)
 
     success_url = m.CharField(max_length=255, blank=True, null=True)
     cancel_url = m.CharField(max_length=255, blank=True, null=True)
@@ -76,6 +123,9 @@ class Order(m.Model):
     # time_placed = m.DateTimeField()
     # def __unicode__(self):
     #     return self.user
+
+
+
 
     def get_order_details(self):
         """Returns a list of user-relevant order details for template use. """
@@ -100,9 +150,6 @@ class Order(m.Model):
         ]
         return details
 
-    def __unicode__(self):  # TODO: What is this?
-        return "Order:" + self.user.username + ";"
-
     def checksumfunc(self):
         """Generate the checksum value according to user pid, sid, amount and
         the token, will be used for verification in the order system.
@@ -114,14 +161,41 @@ class Order(m.Model):
         self.checksum = mm.hexdigest()
         return self.checksum
 
+    def __unicode__(self):
+        return "%s copies of %s ordered on %s" % (
+            self.item_count, self.album.title, self.time_placed)
+
 
 class Page(m.Model):
-    album = m.ForeignKey(Album)
-    layout = m.PositiveSmallIntegerField()
-    number = m.PositiveSmallIntegerField()
+    album = m.ForeignKey(Album, related_name='pages')
+    layout = m.PositiveSmallIntegerField(default=1)
+    number = m.PositiveSmallIntegerField(null=True)
+    # front_cover = m.BooleanField(default=False) TODO: implement this
+    # back_cover = m.BooleanField(default=False) TODO: implement this
+
+    def get_last(self):
+        album_pages = Page.objects.filter(album=self.album)
+        last_page = album_pages.order_by('-number')[0]
+        if last_page.number < 0:
+            return 0
+        return last_page.number
+
+    def activate(self, to):
+        active_album_pages = Page.objects.filter(album=self.album,
+                                                 number__gte=to)
+        for page in active_album_pages:
+            page.number += 1
+        self.number = to
+
+    def deactivate(self):
+        active_album_pages = Page.objects.filter(album=self.album,
+                                                 number__gt=self.number)
+        self.number = -1
+        for page in active_album_pages:
+            page.number -= 1
 
     def __unicode__(self):
-        return "Album:" + self.album.title + "; Page:" + str(self.number)
+        return str(self.number) + " in "  # + self.album.title
 
 # class Photo(m.Model):
 #     album = m.ManyToManyField(Album)
