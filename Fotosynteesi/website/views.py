@@ -5,7 +5,7 @@ from django.shortcuts import render, redirect, render_to_response, get_object_or
 from django.core.context_processors import csrf
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, HttpResponseRedirect,  HttpResponseServerError
+from django.http import HttpResponse, HttpResponseRedirect,  HttpResponseServerError, Http404
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.contrib.auth.models import User
@@ -315,8 +315,26 @@ def single_page_view(request, album_title, page_number):
     params = {'page_obj': page_obj, 'album_title': album_title}
     return render(request, template, params)
 
-    template = "page_layout.html"
-    params = {'album': album_obj, 'page': alb_page}
+
+def add_new_page(request, album_obj):
+    # album_obj = get_object_or_404(Album, user=request.user, title=album_title)
+    new_page = Page.objects.create(album=album_obj)
+    first_free_page_number = new_page.get_last() + 1
+    album_obj.add_page(new_page, None)
+
+    if new_page.number.__class__ is None:
+        raise TypeError("Page number of new page is not an int.")
+
+    return select_page_layout(request, new_page)
+
+
+def select_page_layout(request, page_obj):
+    """Allows user to select a new layout for a page. """
+    # album_obj = get_object_or_404(Album, user=request.user, title=albumtitle)
+    # alb_page = Page.objects.get(id=page_id)
+
+    template = "select_page_layout.html"
+    params = {'album': page_obj.album, 'page': page_obj}
     return render(request, template, params)
 
 
@@ -326,7 +344,7 @@ def photoadd(request, albumtitle, pagenumber, layoutstyle):
 
     """
 
-    album_obj=get_object_or_404(Album,user=request.user, title=albumtitle)
+    album_obj = get_object_or_404(Album,user=request.user, title=albumtitle)
     page = get_object_or_404(Page, album=album_obj, number=pagenumber)
     page.layout = layoutstyle
 
@@ -354,15 +372,15 @@ def photoadd(request, albumtitle, pagenumber, layoutstyle):
         context_instance=RequestContext(request))
 
 
-def page_detail(request, albumtitle, pagenumber):
-    """Show the page with its photo in the webpage. """
-    album_obj = get_object_or_404(Album, user=request.user, title=albumtitle)
-    page = Page.objects.filter(album=album_obj, number=pagenumber)
-    images = Image.objects.filter(user=request.user, album=album_obj, page=page)
+# def page_detail(request, albumtitle, pagenumber):
+#     """Show the page with its photo in the webpage. """
+#     album_obj = get_object_or_404(Album, user=request.user, title=albumtitle)
+#     page = Page.objects.filter(album=album_obj, number=pagenumber)
+#     images = Image.objects.filter(user=request.user, album=album_obj, page=page)
 
-    template = "page_detail.html"
-    params = {'album': album_obj, 'page': page, 'images': images}
-    return render(request, template, params)
+    # template = "page_detail.html"
+    # params = {'album': album_obj, 'page': page, 'images': images}
+    # return render(request, template, params)
 
 
 def page_delete(request, albumtitle, pagenumber):
@@ -372,7 +390,7 @@ def page_delete(request, albumtitle, pagenumber):
     images = Image.objects.filter(user=request.user, album=album_obj, page=page)
     images.delete()
     page.delete()
-    viewname = 'website.views.album_page', "kwargs={'albumtitle':album.title}"
+    viewname = 'website.views.single_album_view', "kwargs={'albumtitle':album.title}"
 
     return HttpResponseRedirect(reverse(viewname))
 
