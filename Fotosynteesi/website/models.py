@@ -133,6 +133,10 @@ class Album(m.Model):
 
 
 class Page(m.Model):
+
+    class Meta(object):
+        ordering = ['-number']
+
     album = m.ForeignKey(Album, related_name='pages')
     layout = m.PositiveSmallIntegerField(default=1)
     number = m.PositiveSmallIntegerField(null=True)
