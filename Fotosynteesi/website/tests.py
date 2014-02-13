@@ -22,11 +22,12 @@ class ModelTestCase(TransactionTestCase):
         a1 = Album.objects.create(user=u1, title_string="Alice's Album")
         a2 = Album.objects.create(user=u2, title_string="Spring Break 2013")
 
-        self.p1 = Page.objects.create(album=a1)
-        p11 = Page.objects.create(album=a1)
-        p2 = Page.objects.create(album=a2)
-        p22 = Page.objects.create(album=a2)
-        p222 = Page.objects.create(album=a2)
+        self.p1 = Page.objects.create(album=a1, number=1)
+        p11 = Page.objects.create(album=a1, number=2)
+
+        p2 = Page.objects.create(album=a2, number=1)
+        p22 = Page.objects.create(album=a2, number=2)
+        p222 = Page.objects.create(album=a2, number=3)
 
     def test_album_creation(self):
         u1 = User.objects.get(username='alice12')
@@ -82,6 +83,56 @@ class ModelTestCase(TransactionTestCase):
         u2 = User.objects.get(username='bobmeister')
         a2 = Album.objects.get(user=u2)
         self.assertRaises(IntegrityError, Page.objects.create, album=a2)
+
+    def test_album_function_get_last_page_number(self):
+
+        u1 = User.objects.get(username='alice12')
+        a1 = Album.objects.get(user=u1)
+        self.assertEqual(a1.get_last_page_number(), 2)
+
+        u2 = User.objects.get(username='bobmeister')
+        a2 = Album.objects.get(user=u2)
+        self.assertEqual(a2.get_last_page_number(), 3)
+
+        Page.objects.create(album=a2, number=4)
+        self.assertEqual(a2.get_last_page_number(), 4)
+
+    def test_album_function_add_new_page_to_location(self):
+
+        u2 = User.objects.get(username='bobmeister')
+        a2 = Album.objects.get(user=u2)
+
+        p21 = Page.objects.get(album=a2, number=1)
+        p22 = Page.objects.get(album=a2, number=2)
+        p23 = Page.objects.get(album=a2, number=3)
+
+        # Check return value (new page object)
+        pnew = a2.add_new_page_to_location(3)
+        self.assertEqual(pnew, Page.objects.get(album=a2, number=3))
+
+        # Check new page number
+        self.assertEqual(pnew.number, 3)
+
+        # Check that there is only one page 3
+        a2_p3s = Page.objects.filter(album=a2, number=3).count()
+        self.assertEqual(a2_p3s, 1)
+
+        # Check old page 3 number
+        p23 = Page.objects.get(id=p23.id)
+        self.assertEqual(p23.number, 4)
+
+    def test_album_function_add_new_page_to_end(self):
+
+        u2 = User.objects.get(username='bobmeister')
+        a2 = Album.objects.get(user=u2)
+
+        # Add new page, check its number
+        pnew = a2.add_new_page_to_end()
+        self.assertEqual(pnew.number, 4)
+
+        # Add another new page, check its number
+        pnew_another = a2.add_new_page_to_end()
+        self.assertEqual(pnew_another.number, 5)
 
     def tearDown(self):
         User.objects.filter(~Q(username='admin')).delete()
