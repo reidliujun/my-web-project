@@ -234,3 +234,35 @@ background-color: #FF9473;
 /*#left{
 	margin-left: 20px;
 }*/
+
+#result1{
+	color:red;
+}
+#result2{
+	color:blue;
+}
+
+.photorow{
+	display:inline-block;
+	margin-bottom: 15px;
+	background: red;
+	/*display:table-row-group;*/
+}
+.imagepool{
+	float: left;
+	margin-right: 15px;
+	/*background: red;*/
+	/*display:inline-table;*/
+}
+.dragarea{
+	display:inline-block;
+	height:200px;
+	width: 400px;
+	margin-bottom: 20px;
+	margin-top: 20px;
+	/*background: red;*/
+}
+.dragdiv{
+	display: inline-block;
+	/*background: red;*/
+}
