@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% url 'website.views.add_new_page' album_obj.title 'add' as add_new_page_url %}
+
+{% block head %}
+{% load staticfiles %}
+{% endblock head %}
+
+{% block title %}{{ album_obj.title }}{% endblock title %}
+{% block navbar-active-album %}active{% endblock navbar-active-album %}
+
+{% block content %}
+Content:
+    <br>
+    {% for page in album_obj.pages.all %}
+        {% url 'Single Page View' album_obj.title page.number as view_single_page_url %}
+        <p>
+        (page {{ page.number }}) of (album "{{ album_obj.title }}"), a (layout {{ page.layout }}) style page:
+        <a href="{{ view_single_page_url }}">link</a>
+        </p>
+    {% endfor %}
+<a class="setLink" href="{{ add_new_page_url }}q">
+{% endblock content %}
+
+{% block comment %}
+
+			<div class="row">
+				{% if pages %}
+					{% for page in pages %}
+				
+					<div class="col-xs-6 col-md-3">
+						<div class="setLinkDiv">
+							<a class="thumbnail" href="/album/{{album.title}}/page/{{page.number}}">
+								<img class="setThumb" src="{% static 'images/scribble-photo-album-icon.png' %}" width="240" height="180" >
+							</a>
+						</div>
+
+						<div class="setText">
+															
+							<a class="Seta"  href="/album/{{album.title}}/page/{{page.number}}" style="height:100%">
+								<h4>Page: {{page.number}}</h4>		
+							</a>
+						</div>
+							
+						<div class="pagedelet">
+							<a class="delete"  href="/album/{{album.title}}/page/{{page.number}}/delete" title="delete" style="height:100%">
+								<h4>delete</h4>		
+							</a>
+						</div>
+
+					</div>
+					{% endfor %}
+				
+					
+				{% endif %}		
+				
+
+
+				<div class="col-xs-6 col-md-3">
+
+					<div class="setLinkDiv"><a class="thumbnail" href="/album/{{album.title}}/page/add"><img class="setThumb" src="{% static 'images/layout-icon.png' %}" alt="Add New Page" height="180" width="240"/></a></div>
+					<div class="setText">
+						<a class="setLink" href="{{ add_new_page_url }}add">
+							<h2 title="Add a new page to your album.">+</h2>
+						</a>
+					</div>
+				</div>
+
+			</div>
+		
+		
+
+{% endblock comment %}
