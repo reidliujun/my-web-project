@@ -63,23 +63,22 @@ class Album(m.Model):
 
         return last_page_number
 
-    def add_page_to_location(self, location_index):
+    def add_new_page_to_location(self, location_index):
         """Creates a page and adds it to the requested location within the
         album. """
 
-        page_objs = self.pages_set.all()
-        pages_by_number = {}
+        page_objs = self.pages.all()
         for page in page_objs:
-            pages_by_number[page.number] = page
-        for i in range(len(pages_by_number), location_index - 1, -1):
-            temp = pages_by_number.pop(i)
-            pages_by_number[i + 1] = temp
-        Page.objects.create(album=self, number=location_index)
+            if page.number >= location_index:
+                page.number += 1
+                page.save()
 
-    def add_page_to_end(self):
+        return Page.objects.create(album=self, number=location_index)
+
+    def add_new_page_to_end(self):
         """Creates a new page and numbers it as the last page of the album. """
         last_page_number = self.get_last_page_number()
-        self.add_page_to_location(last_page_number + 1)
+        return self.add_new_page_to_location(last_page_number + 1)
 
     def generate_url_suffix(self, suffix_type):
         """Generates a random string, 32 characters in length, and saves it in
