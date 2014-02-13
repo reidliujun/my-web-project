@@ -170,12 +170,13 @@ class Page(m.Model):
 
 class Image(m.Model):
     """Represents a single referenced (or uploaded) photograph. """
-    title = m.CharField(max_length=30)
+    title = m.CharField(max_length=30)  # TODO: Why? No need...
     # FIXME: This is bad, we have to upload to user specific directories
     imgfile = m.ImageField(upload_to='documents/%Y/%m/%d')
     page = m.ManyToManyField(Page)
-    user = m.ManyToManyField(User)
+    layout_position = m.PositiveSmallIntegerField()
     album = m.ManyToManyField(Album)
+    user = m.ManyToManyField(User)  # TODO: Think whether this is needed
 
     def __unicode__(self):
         return self.title
