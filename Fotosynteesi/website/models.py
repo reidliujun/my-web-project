@@ -3,6 +3,8 @@
 from django.contrib.auth.models import User
 from django.db import models as m
 from django.db import IntegrityError
+from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
 from django.utils.text import slugify
 import datetime
 from uuid import uuid4
@@ -18,18 +20,21 @@ COST_PER_PAGE = 1.35  # in BASE_CURRENCY
 class Album(m.Model):
     """Docstring goes here. """
 
+    class Meta(object):
+        unique_together = ('user', 'title_slug')
+
     # this allows for us to use user.albums to get a user's albums
     user = m.ForeignKey(User, related_name='albums')
 
     # this feature adds some complications to the project, may want to drop
     # collaborators = m.ManyToManyField(User)
 
-    title_string = m.CharField(max_length=50)
-    title_slug = m.SlugField()
+    title_string = m.CharField(max_length=50, verbose_name="Album title")
+    title_slug = m.SlugField(blank=True, null=True)
     public_url_suffix = m.SlugField(max_length=32, blank=True)
-    collaboration_url_suffix = m.SlugField(max_length=20, blank=True)
+    collaboration_url_suffix = m.SlugField(max_length=32, blank=True)
 
-    def last_page_number(self):
+    def get_last_page_number(self):
         """Helper function for add_page().
 
         """
@@ -58,20 +63,23 @@ class Album(m.Model):
 
         return last_page_number
 
-    def add_page(self, page_obj, location_index):
-        """
-        """
+    def add_page_to_location(self, location_index):
+        """Creates a page and adds it to the requested location within the
+        album. """
 
-        if location_index is None:
-            location_index = self.last_page_number() + 1
+        page_objs = self.pages_set.all()
+        pages_by_number = {}
+        for page in page_objs:
+            pages_by_number[page.number] = page
+        for i in range(len(pages_by_number), location_index - 1, -1):
+            temp = pages_by_number.pop(i)
+            pages_by_number[i + 1] = temp
+        Page.objects.create(album=self, number=location_index)
 
-        page_obj.number = location_index
-
-        if page_obj.number.__class__ != int:
-            errmsg = "Add page failed, page number was reported as type %s."
-            raise TypeError(errmsg % page_obj.number.__class__)
-        if page_obj.number < 0:
-            raise ValueError("Add page failed, tried add to negative index.")
+    def add_page_to_end(self):
+        """Creates a new page and numbers it as the last page of the album. """
+        last_page_number = self.get_last_page_number()
+        self.add_page_to_location(last_page_number + 1)
 
     def generate_url_suffix(self, suffix_type):
         """Generates a random string, 32 characters in length, and saves it in
@@ -89,23 +97,34 @@ class Album(m.Model):
         page_count = Page.objects.filter(album=self).count()
         return BASE_UNIT_COST + COST_PER_PAGE * page_count
 
-    def save(self, *args, **kwargs):
-        """Converts title_string to unicode and creates title_slug on save. """
-        if self.title_string == '':
-            raise IntegrityError("self.title_string cannot be blank.")
+    def clean(self):
+        """Validates inputs. """
+
+        if not self.user:
+            raise ValidationError("An album must be associated to a user.")
+
+        # Converts title_string to unicode and creates title_slug.
+        # if len(self.title_string) < 1:
+        #     raise ValidationError("The title_string cannot be blank.")
 
         self.title_string = unicode(self.title_string)
 
         if Album.objects.filter(user=self.user, title_string=self.title_string).count() > 0:
-            raise IntegrityError("User already has an album with this title.")
+            raise ValidationError("This user already has an album with this title_string.")
 
         self.title_slug = slugify(self.title_string)
 
         if Album.objects.filter(user=self.user, title_slug=self.title_slug).count() > 0:
-            errmsg = "User already has an album where title_string results"
+            errmsg = "This user already has an album where title_string results"
             errmsg += " in the same title_slug."
-            raise IntegrityError(errmsg)
+            raise ValidationError(errmsg)
 
+    def save(self, *args, **kwargs):
+        """Overrides the default save function. """
+        try:
+            self.full_clean()
+        except ValidationError as e:
+            return e
         super(Album, self).save(*args, **kwargs)
 
     def __unicode__(self):
