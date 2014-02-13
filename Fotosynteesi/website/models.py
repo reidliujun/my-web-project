@@ -73,15 +73,17 @@ class Album(m.Model):
         if page_obj.number < 0:
             raise ValueError("Add page failed, tried add to negative index.")
 
-    def generate_url_suffix(self, which):
+    def generate_url_suffix(self, suffix_type):
         """Generates a random string, 32 characters in length, and saves it in
         the appropriate variable within the Album object. """
-        if which == 'public':
+        if suffix_type == 'public':
             self.public_url_suffix = str(uuid4()).replace('-', '')
-        elif which == 'collaboration':
+        elif suffix_type == 'collaboration':
             self.collaboration_url_suffix = str(uuid4()).replace('-', '')
         else:
-            raise ValueError  # TODO: remove after testing (make actual tests)
+            errmsg = "url suffix type can either be 'public'"
+            errmsg += " or 'collaboration', got '%s'." % suffix_type
+            raise ValueError(errmsg)
 
     def calculate_item_cost(self):
         page_count = Page.objects.filter(album=self).count()
@@ -91,8 +93,19 @@ class Album(m.Model):
         """Converts title_string to unicode and creates title_slug on save. """
         if self.title_string == '':
             raise IntegrityError("self.title_string cannot be blank.")
+
         self.title_string = unicode(self.title_string)
+
+        if Album.objects.filter(user=self.user, title_string=self.title_string).count() > 0:
+            raise IntegrityError("User already has an album with this title.")
+
         self.title_slug = slugify(self.title_string)
+
+        if Album.objects.filter(user=self.user, title_slug=self.title_slug).count() > 0:
+            errmsg = "User already has an album where title_string results"
+            errmsg += " in the same title_slug."
+            raise IntegrityError(errmsg)
+
         super(Album, self).save(*args, **kwargs)
 
     def __unicode__(self):
