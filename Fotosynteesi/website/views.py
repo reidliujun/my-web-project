@@ -22,7 +22,7 @@ from django_facebook.api import get_persistent_graph, require_persistent_graph
 from django_facebook.decorators import facebook_required_lazy, facebook_required
 from django_facebook.utils import next_redirect, parse_signed_request
 from django.contrib import messages
-rom django.core import serializers
+from django.core import serializers
 from django.utils import simplejson
 from django.db import OperationalError
 
@@ -224,53 +224,29 @@ def album_form(request):
     """Input the album title, when 'POST', create the new album. """
 
     '''Simple ajax deal with the album title conflict issue. '''
-    message = {"status":""}
+    message = {"status": ""}
     template = "albumform.html"
     params = {'message': 'Album already have, choose another title!'} 
+
     if request.is_ajax():
-        if " " in request.POST['title']:
-            title_array = request.POST['title'].split(" ")
-            mytitle = "_".join(title_array)
-        else:
-            mytitle=request.POST['title']
-        if not Album.objects.filter(user=request.user, title=mytitle):
-        # if request.POST['title'] == 'wangyi':
+        mytitle = request.POST['title_string']
+        if not Album.objects.filter(user=request.user, title_string=mytitle):
             message["status"] = "OK to create"
         else:
             message["status"] = "fail to create"
         '''Provide message to html page as json. '''
         json = simplejson.dumps(message)
-        return HttpResponse(json, content_type = 'application/json')
+        return HttpResponse(json, content_type='application/json')
 
     if request.method == 'POST':
-        if " " in request.POST['title']:
-            '''If title input has space, replace space with '_'. 
-            Noticed: it is not a good solution now, should be fixed in the future.'''
-            title_array = request.POST['title'].split(" ")
-            mytitle = "_".join(title_array)
-            if not Album.objects.filter(user=request.user, title=mytitle):
-                newalbum = Album(title=mytitle)
-            else:
-                return render(request,template,params)
+        mytitle = request.POST['title']
+        if not Album.objects.filter(user=request.user, title_string=mytitle):
+            newalbum = Album(user=request.user, title_string=mytitle)
         else:
-            mytitle = request.POST['title']
-            if not Album.objects.filter(user=request.user, title=mytitle):
-                newalbum = Album(title=mytitle)
-                newalbum = Album(title=request.POST['title'])
-            else:
-                return render(request,template,params)
-        # FIXME: No hard-coding urls!
-        '''Assign the public url to album attribute. '''
-        newalbum.public_url_suffix = "http://localhost.foo.fi:8000/public/"+request.user.username+"_"+newalbum.title
-        # FIXME: Suffix is still wrong!
-        # FIXME: No hard-coding urls!
-        #newalbum.public_url_suffix = "http://fotosynteesi.herokuapp.com/public/"+request.user.username+"_"+newalbum.title
-        newalbum.collaboration_url_suffix = 'google.com'
-        
+            return render(request, template, params)
+
         #get the user object
         newalbum.save()
-        user = User.objects.get(username=request.user.username)
-        newalbum.user.add(user)
         return HttpResponseRedirect(reverse('website.views.album'))
     albums = Album.objects.filter(user=request.user)
     return render(request, template)
@@ -321,19 +297,19 @@ def album_delete(request, albumtitle):
     return HttpResponseRedirect(reverse('website.views.album'))
     
 
-def single_album_view(request, album_title):
+def single_album_view(request, title_slug):
     """Show the page detail inside one chosen album with its title. """
-    album_obj = get_object_or_404(Album, title=album_title)
+    album_obj = get_object_or_404(Album, title_slug=title_slug)
 
     if request.user == album_obj.user:
         access_right = 'owner'
-    elif request.user in album_obj.collaborators:
-        access_right = 'collaborator'
-    elif request.REQUEST['collaborator_url_suffix'] == album_obj.collaboration_url_suffix:
-        album_obj.collaborators = request.user
-        access_right = 'collaborator'
-    elif request.REQUEST['public_url_suffix'] == album_obj.public_url_suffix:
-        access_right = 'guest'
+    # elif request.user in album_obj.collaborators:
+    #     access_right = 'collaborator'
+    # elif request.REQUEST['collaborator_url_suffix'] == album_obj.collaboration_url_suffix:
+    #     album_obj.collaborators = request.user
+    #     access_right = 'collaborator'
+    # elif request.REQUEST['public_url_suffix'] == album_obj.public_url_suffix:
+    #     access_right = 'guest'
     else:
         return HttpResponse(status=CODE["Unauthorized"])
 
@@ -342,13 +318,13 @@ def single_album_view(request, album_title):
     return render(request, template, params)
 
 
-def single_page_view(request, album_title, page_number):
+def single_page_view(request, title_slug, page_number):
 
-    album_obj = Album.objects.get(title=album_title)  # TODO: rights
+    album_obj = Album.objects.get(title_slug=title_slug)  # TODO: rights
     page_obj = Page.objects.get(album=album_obj, number=page_number)
 
     template = "page_detail.html"
-    params = {'page_obj': page_obj, 'album_title': album_title}
+    params = {'page_obj': page_obj, 'album_title': title_slug}
     return render(request, template, params)
 
 

@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
-{% url 'website.views.add_new_page' album_obj.title 'add' as add_new_page_url %}
+{#{% url 'website.views.add_new_page' album_obj.title_slug as add_new_page_url %}#}
+{% url 'website.views.add_new_page' as add_new_page_url %}
 
 {% block head %}
 {% load staticfiles %}
@@ -9,16 +10,20 @@
 {% block navbar-active-album %}active{% endblock navbar-active-album %}
 
 {% block content %}
-Content:
-    <br>
+
+    <p>Content:</p>
     {% for page in album_obj.pages.all %}
-        {% url 'Single Page View' album_obj.title page.number as view_single_page_url %}
+        {% url 'Single Page View' album_obj.title_slug page.number as view_single_page_url %}
         <p>
-        (page {{ page.number }}) of (album "{{ album_obj.title }}"), a (layout {{ page.layout }}) style page:
+        (page {{ page.number }}) of (album "{{ album_obj.title_string }}"), a (layout {{ page.layout }}) style page:
         <a href="{{ view_single_page_url }}">link</a>
         </p>
     {% endfor %}
-<a class="setLink" href="{{ add_new_page_url }}q">
+
+    <a class="setLink" href="{{ add_new_page_url }}">
+        <h2 title="Add a new page to your album.">+</h2>
+    </a>
+
 {% endblock content %}
 
 {% block comment %}
