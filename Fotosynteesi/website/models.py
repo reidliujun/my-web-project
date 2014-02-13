@@ -138,7 +138,7 @@ class Page(m.Model):
 
     album = m.ForeignKey(Album, related_name='pages')
     layout = m.PositiveSmallIntegerField(default=1)
-    number = m.PositiveSmallIntegerField(null=True)
+    number = m.PositiveSmallIntegerField()
     # front_cover = m.BooleanField(default=False) TODO: implement this?
     # back_cover = m.BooleanField(default=False) TODO: implement this?
 
@@ -164,14 +164,15 @@ class Page(m.Model):
             page.number -= 1
 
     def __unicode__(self):
-        return str(self.number) + " in "  # + self.album.title
+        return unicode(self.number) + " in " + unicode(self.album)
 
 
 class Image(m.Model):
     """Represents a single referenced (or uploaded) photograph. """
-    title = m.CharField(max_length=30)  # TODO: Why? No need...
+    # title = m.CharField(max_length=30)  # TODO: Why? No need...
     # FIXME: This is bad, we have to upload to user specific directories
     imgfile = m.ImageField(upload_to='documents/%Y/%m/%d')
+    remote_path = m.URLField(blank=False, null=False)
     page = m.ManyToManyField(Page)
     layout_position = m.PositiveSmallIntegerField()
     album = m.ManyToManyField(Album)
