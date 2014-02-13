@@ -100,6 +100,60 @@ class Album(m.Model):
         return self.title_string
 
 
+class Page(m.Model):
+    album = m.ForeignKey(Album, related_name='pages')
+    layout = m.PositiveSmallIntegerField(default=1)
+    number = m.PositiveSmallIntegerField(null=True)
+    # front_cover = m.BooleanField(default=False) TODO: implement this?
+    # back_cover = m.BooleanField(default=False) TODO: implement this?
+
+    def get_last(self):
+        album_pages = Page.objects.filter(album=self.album)
+        last_page = album_pages.order_by('-number')[0]
+        if last_page.number < 0:
+            return 0
+        return last_page.number
+
+    def activate(self, to):
+        active_album_pages = Page.objects.filter(album=self.album,
+                                                 number__gte=to)
+        for page in active_album_pages:
+            page.number += 1
+        self.number = to
+
+    def deactivate(self):
+        active_album_pages = Page.objects.filter(album=self.album,
+                                                 number__gt=self.number)
+        self.number = -1
+        for page in active_album_pages:
+            page.number -= 1
+
+    def __unicode__(self):
+        return str(self.number) + " in "  # + self.album.title
+
+
+class Image(m.Model):
+    """Represents a single referenced (or uploaded) photograph. """
+    title = m.CharField(max_length=30)
+    # FIXME: This is bad, we have to upload to user specific directories
+    imgfile = m.ImageField(upload_to='documents/%Y/%m/%d')
+    page = m.ManyToManyField(Page)
+    user = m.ManyToManyField(User)
+    album = m.ManyToManyField(Album)
+
+    def __unicode__(self):
+        return self.title
+
+    def delete(self, *args, **kwargs):
+        """Docstring goes here. """
+        # get the page and storage before delete
+        storage, path = self.imgfile.storage, self.imgfile.path
+        # Delete the model before the file
+        super(Image, self).delete(*args, **kwargs)
+        # Delete the imagefile after the model
+        storage.delete(path)
+
+
 class Order(m.Model):
     """An order, containing user, album, recipient, time, and cost information.
 
@@ -198,56 +252,3 @@ class Order(m.Model):
         return "%s copies of %s ordered on %s" % (
             self.item_count, self.album.title, self.time_placed)
 
-
-class Page(m.Model):
-    album = m.ForeignKey(Album, related_name='pages')
-    layout = m.PositiveSmallIntegerField(default=1)
-    number = m.PositiveSmallIntegerField(null=True)
-    # front_cover = m.BooleanField(default=False) TODO: implement this
-    # back_cover = m.BooleanField(default=False) TODO: implement this
-
-    def get_last(self):
-        album_pages = Page.objects.filter(album=self.album)
-        last_page = album_pages.order_by('-number')[0]
-        if last_page.number < 0:
-            return 0
-        return last_page.number
-
-    def activate(self, to):
-        active_album_pages = Page.objects.filter(album=self.album,
-                                                 number__gte=to)
-        for page in active_album_pages:
-            page.number += 1
-        self.number = to
-
-    def deactivate(self):
-        active_album_pages = Page.objects.filter(album=self.album,
-                                                 number__gt=self.number)
-        self.number = -1
-        for page in active_album_pages:
-            page.number -= 1
-
-    def __unicode__(self):
-        return str(self.number) + " in "  # + self.album.title
-
-
-class Image(m.Model):
-    """Represents a single referenced (or uploaded) photograph. """
-    title = m.CharField(max_length=30)
-    # FIXME: This is bad, we have to upload to user specific directories
-    imgfile = m.ImageField(upload_to='documents/%Y/%m/%d')
-    page = m.ManyToManyField(Page)
-    user = m.ManyToManyField(User)
-    album = m.ManyToManyField(Album)
-
-    def __unicode__(self):
-        return self.title
-
-    def delete(self, *args, **kwargs):
-        """Docstring goes here. """
-        # get the page and storage before delete
-        storage, path = self.imgfile.storage, self.imgfile.path
-        # Delete the model before the file
-        super(Image, self).delete(*args, **kwargs)
-        # Delete the imagefile after the model
-        storage.delete(path)
