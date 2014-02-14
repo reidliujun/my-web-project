@@ -38,8 +38,8 @@
 					{% for image in images %}
 		<!-- 				<li><a href="{{ image.imgfile.url }}">{{ image.imgfile.name }}</a></li> -->
 						<li>
-							<a href="{{ image.remote_path }}">
-								<img src="{{ image.remote_path }}" height="180" width="240">
+							<a href="{{ image.imgfile.url }}">
+								<img src="{{ image.imgfile.url }}" height="180" width="240">
 							</a>
 						</li>
 					{% endfor %}

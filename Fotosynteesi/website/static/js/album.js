@@ -26,9 +26,40 @@ $(document).ready(function() {
 	     }
 	     
     };
+    $(".imageadd").hover(function(){
+    	
+    	var img_number = $('img').length;
+
+     //    // var name = $('#title').attr('title');
+
+     // //    // $('.orderattr').bind('click', function () {
+	      if (img_number != 0){
+	    	  // alert("test");
+	        $.ajax({
+	            type: "POST",
+	            url: window.location.pathname,
+	            // url: "/album/",
+	            // url:"/album/liujun/page/3/layout/1/",
+	            data: {'number': img_number}
+	        })
+	        .done(function(data){
+	            if(data.status=="Image full"){
+	              $(".photoadd-form").hide();
+	            }
+	            else{
+	              $(".photoadd-form").show();
+	            }  
+	        });
+	     }
+	 });
+
+
 
     $( "#albumadd_title" ).focusout(function(){
     	var value = $('#albumadd_title').val();
+        // var name = $('#title').attr('title');
+
+        // $('.orderattr').bind('click', function () {
 	     if (value != ""){
 	        $.ajax({
 	            type: "POST",
@@ -36,16 +67,13 @@ $(document).ready(function() {
 	            data: {'title': value}
 	        })
 	        .done(function(data){
-            // alert(data.status);
-	            if(data.status=="confilct"){
+	            if(data.status=="fail to create"){
 	              $('#result1')[0].innerHTML="Album title conflicts, choose another title!";
 	            }
-              else if(data.status=="Special symbols"){
-                $('#result1')[0].innerHTML="Please input title without space and symbols!";
-              }
 	            else{
 	              $('#result2')[0].innerHTML="Album title is good!";
 	            }
+	            
 	        });
 	     }
 	     else{
@@ -54,281 +82,55 @@ $(document).ready(function() {
 	     }
 	 });
 
-   
-    // below code is referred from: http://jsfiddle.net/circle73/gqSaq/3/
-        // image deletion function
-
-    
-
-    // there's the gallery and the trash
-    var $gallery = $( ".gallery" );
-    var $trash = $( "#trash");
-    var $trash1 = $( "#trash1");
-    var $trash2 = $( "#trash2");
-    var $trash3 = $( "#trash3");
-    var $trash4 = $( "#trash4");
-    var $trash5 = $( "#trash5");
-
-    function deleteImage( $item ) {
-      $item.fadeOut(function() {
-        var $list = $( "<ul class='gallery ui-helper-reset'/>" ).appendTo( $trash );
-        $item.appendTo( $list ).fadeIn(function() {
-          $item
-            .animate({ width: "400px" })
-            .find( "img" )
-              .animate({ height: "300px" });
-        });
-      });
-    }
-    function deleteImage1( $item ) {
-      $item.fadeOut(function() {
-        var $list = $( "<ul class='gallery ui-helper-reset'/>" ).appendTo( $trash1 );
-        $item.appendTo( $list ).fadeIn(function() {
-          $item
-            .animate({ width: "180px" })
-            .find( "img" )
-              .animate({ height: "140px" });
-        });
-      });
-    }
-    function deleteImage2( $item ) {
-      $item.fadeOut(function() {
-        var $list = $( "<ul class='gallery ui-helper-reset'/>" ).appendTo( $trash2 );
-        $item.appendTo( $list ).fadeIn(function() {
-          $item
-            .animate({ width: "180px" })
-            .find( "img" )
-              .animate({ height: "140px" });
-        });
-      });
-    }
-    function deleteImage3( $item ) {
-      $item.fadeOut(function() {
-        var $list = $( "<ul class='gallery ui-helper-reset'/>" ).appendTo( $trash3 );
-        $item.appendTo( $list ).fadeIn(function() {
-          $item
-            .animate({ width: "180px" })
-            .find( "img" )
-              .animate({ height: "140px" });
-        });
-      });
-    }
-    function deleteImage4( $item ) {
-      $item.fadeOut(function() {
-        var $list = $( "<ul class='gallery ui-helper-reset'/>" ).appendTo( $trash4 );
-        $item.appendTo( $list ).fadeIn(function() {
-          $item
-            .animate({ width: "180px" })
-            .find( "img" )
-              .animate({ height: "140px" });
-        });
-      });
-    }
-
-    function deleteImage5( $item ) {
-      $item.fadeOut(function() {
-        var $list = $( "<ul class='gallery ui-helper-reset'/>" ).appendTo( $trash5 );
-        // $item.appendTo( $list ).fadeIn(function() {
-        //   $item
-        //     .animate({ width: "180px" })
-        //     .find( "img" )
-        //       .animate({ height: "140px" });
-        // });
-      });
-    }
-
-    // image recycle function
-    function recycleImage( $item ) {
-      $item.fadeOut(function() {
-        $item
-          .css( "width", "96px")
-          .find( "img" )
-            .css( "height", "72px" )
-          .end()
-          .appendTo( $gallery )
-          .fadeIn();
-      });
-    }
-
-    // let the gallery items be draggable
-    $( "li", $gallery ).draggable({
-      cancel: "a.ui-icon", // clicking an icon won't initiate dragging
+    //Make the image draggable
+    $(".dragdiv").draggable({
+      // cancel: "a.ui-icon", // clicking an icon won't initiate dragging
       revert: "invalid", // when not dropped, the item will revert back to its initial position
-      containment: "document",
-      helper: "clone",
-      cursor: "move"
+      // containment: "document",
+      // helper: "clone",
+      // cursor: "move"
     });
-
-    // let the gallery be droppable as well, accepting items from the trash
-    $gallery.droppable({
-      accept: ".trash li",
-      activeClass: "custom-state-active",
-      drop: function( event, ui ) {
-        recycleImage( ui.draggable );
-        // var mId= ui.draggable.attr("id");
-        // if (mId=="trash"){
-        $trash.droppable( "option", "disabled", false );
-        // $trash1.droppable( "option", "disabled", false );
-        // $trash2.droppable( "option", "disabled", false );
-        // $trash3.droppable( "option", "disabled", false );
-        // $trash4.droppable( "option", "disabled", false );
-        // }
-        // else if(mId=="trash1"){
-          // $trash1.droppable( "option", "disabled", false );
-        // }
-        // else if(mId=="trash2"){
-          // $trash2.droppable( "option", "disabled", false );
-        // }
-        // else if(mId=="trash3"){
-          // $trash3.droppable( "option", "disabled", false );
-        // }
-        // else if(mId=="trash4"){
-          // $trash4.droppable( "option", "disabled", false );
-        // }
-        var img_id=ui.draggable.attr("id");
-        $.ajax({
+    $(".photorow").droppable({
+    	accept: ".dragdiv",
+    	activeClass: "ui-state-hover",
+      	hoverClass: "ui-state-active",
+      	drop: function( event, ui ) {
+      	var title=ui.draggable.attr("id");
+        $( this )
+          .addClass( "ui-state-highlight" )
+      	$.ajax({
             type: "POST",
             url: window.location.pathname,
-            data: {'setting':'clear', 'id': img_id}
+            data: {'setting':'clear', 'title': title}
         })
         .done(function(data){
-            // alert(data.status);
+            alert(data.status);
         });
       }
     });
-
-    // let the trash be droppable, accepting the gallery items
-    $trash.droppable({
-      accept: "#gallery > li",
-      activeClass: "ui-state-highlight",
+    
+    $(".dragarea").droppable({
+      accept: ".dragdiv",
+      activeClass: "ui-state-hover",
+      hoverClass: "ui-state-active",
+      // activeClass: "ui-state-highlight",
+      // drop: function( event, ui ) {
+      //   deleteImage( ui.draggable );
+      // }
       drop: function( event, ui ) {
-
-        deleteImage( ui.draggable );
-        $trash.droppable( "option", "disabled", true );
-        var img_id=ui.draggable.attr("id");
-        $.ajax({
+      	var title=ui.draggable.attr("id");
+        $( this )
+          .addClass( "ui-state-highlight" )
+          .html( "Dropped!" );
+      	$.ajax({
             type: "POST",
             url: window.location.pathname,
-            data: {'setting':'set', 'id': img_id}
+            data: {'setting':'set', 'title': title}
         })
         .done(function(data){
-          if(data.status!="OK"){
-            alert("try again!");
-          }
-      });
-      }
-    });
-
-    $trash1.droppable({
-      accept: "#gallery > li",
-      activeClass: "ui-state-highlight",
-      drop: function( event, ui ) {
-
-        deleteImage1( ui.draggable );
-        // $trash1.droppable( "option", "disabled", true );
-        var img_id=ui.draggable.attr("id");
-        $.ajax({
-            type: "POST",
-            url: window.location.pathname,
-            data: {'setting':'set', 'id': img_id}
-        })
-        .done(function(data){
-            if(data.status!="OK"){
-            alert("try again!");
-          }
+            alert(data.status);
         });
-        
       }
     });
-
-    $trash2.droppable({
-      accept: "#gallery > li",
-      activeClass: "ui-state-highlight",
-      drop: function( event, ui ) {
-
-        deleteImage2( ui.draggable );
-        // $trash2.droppable( "option", "disabled", true );
-        var img_id=ui.draggable.attr("id");
-        $.ajax({
-            type: "POST",
-            url: window.location.pathname,
-            data: {'setting':'set', 'id': img_id}
-        })
-        .done(function(data){
-            if(data.status!="OK"){
-            alert("try again!");
-          }
-        });
-        
-      }
-    });
-
-    $trash3.droppable({
-      accept: "#gallery > li",
-      activeClass: "ui-state-highlight",
-      drop: function( event, ui ) {
-
-        deleteImage3( ui.draggable );
-        // $trash3.droppable( "option", "disabled", true );
-        var img_id=ui.draggable.attr("id");
-        $.ajax({
-            type: "POST",
-            url: window.location.pathname,
-            data: {'setting':'set', 'id': img_id}
-        })
-        .done(function(data){
-            if(data.status!="OK"){
-            alert("try again!");
-          }
-        });
-        
-      }
-    });
-
-    $trash4.droppable({
-      accept: "#gallery > li",
-      activeClass: "ui-state-highlight",
-      drop: function( event, ui ) {
-
-        deleteImage4( ui.draggable );
-        // $trash4.droppable( "option", "disabled", true );
-        var img_id=ui.draggable.attr("id");
-        $.ajax({
-            type: "POST",
-            url: window.location.pathname,
-            data: {'setting':'set', 'id': img_id}
-        })
-        .done(function(data){
-            if(data.status!="OK"){
-            alert("try again!");
-          }
-        });
-        
-      }
-    });
-
-    $trash5.droppable({
-      accept: "#gallery > li",
-      activeClass: "ui-state-highlight",
-      drop: function( event, ui ) {
-
-        deleteImage5( ui.draggable );
-        // $trash4.droppable( "option", "disabled", true );
-        var img_id=ui.draggable.attr("id");
-        $.ajax({
-            type: "POST",
-            url: window.location.pathname,
-            data: {'setting':'delete', 'id': img_id}
-        })
-        .done(function(data){
-            if(data.status!="OK"){
-            alert("try again!");
-          }
-        });
-        
-      }
-    });
-
-
 
 });

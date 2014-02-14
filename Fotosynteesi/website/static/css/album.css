@@ -242,21 +242,27 @@ background-color: #FF9473;
 	color:blue;
 }
 
-
-/*below code reference from: http://jsfiddle.net/circle73/gqSaq/3/*/
-
-#gallery { float: left; width: 100%; min-height: 12em; }
-.gallery.custom-state-active { background: #eee; }
-.gallery li { list-style: none;float: left; width: 96px; padding: 0; margin: 2.5em 0.4em 1em 0; text-align: center; }
-.gallery li a { float: right; }
-.gallery li a.ui-icon-zoomin { float: left; }
-.gallery li img { width: 100%; height: 70px; cursor: move; }
-.gallery li a img{ cursor:pointer;}
-
-#trash{ height: 365px; width:480px;background: transparent;border:1px solid #e1e1e8;border-radius: 4px;}
-
-#trash1, #trash2, #trash3, #trash4, #trash5{float:left;height:200px; width:260px;background: transparent;border:1px solid #e1e1e8;border-radius: 4px;}
-#trash, .first-row, .second-row, .imagepool{display:inline-block;}
-#trash5{float:left;height:100px; width:100px;background: transparent;border:2px solid #e1e1e8;border-radius: 4px;}
-.photoaddclass{float:left;display: inline;}
-
+.photorow{
+	display:inline-block;
+	margin-bottom: 15px;
+	background: red;
+	/*display:table-row-group;*/
+}
+.imagepool{
+	float: left;
+	margin-right: 15px;
+	/*background: red;*/
+	/*display:inline-table;*/
+}
+.dragarea{
+	display:inline-block;
+	height:200px;
+	width: 400px;
+	margin-bottom: 20px;
+	margin-top: 20px;
+	/*background: red;*/
+}
+.dragdiv{
+	display: inline-block;
+	/*background: red;*/
+}

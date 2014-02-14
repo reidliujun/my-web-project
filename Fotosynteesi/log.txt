@@ -2,7 +2,7 @@
 
 1. in templates
 add several template files
-add tag <a> for delete in album.html and album_page.html
+add tag <a> for delete in album.html and single_album_view.html
 
 2. in website/static/images
 add layout png
