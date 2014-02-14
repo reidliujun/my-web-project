@@ -5,7 +5,7 @@ from django.shortcuts import render, redirect, render_to_response, get_object_or
 from django.core.context_processors import csrf
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, HttpResponseRedirect,  HttpResponseServerError, Http404
+from django.http import HttpResponse, HttpResponseRedirect,  HttpResponseServerError
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.contrib.auth.models import User
@@ -26,15 +26,6 @@ from django.core import serializers
 from django.utils import simplejson
 from django.db import OperationalError
 
-# Note: Never use 301 (it cannot be undone).
-CODE = {
-    'OK': 200,
-    'Unauthorized': 401,            # User needs to authenticate
-    'Forbidden': 403,               # Regardless of authentication status
-    'Method Not Allowed': 405,      # HTTP methods (GET, etc.)
-    'Internal Server Error': 500,   # Generic error
-}
-
 
 def home(request):
     if request.user.is_authenticated():
@@ -50,9 +41,7 @@ def about(request):
 @login_required
 def album(request):
     """The album page show all the albums list 
-    with request user filter in database.
-
-    """
+    with request user filter in database. """
     user = request.user
     msg = "hello %s, this is a test." % user.username
     try:
@@ -72,10 +61,8 @@ def order(request):
 
 
 def create_user(request):
-    """Creates a user using the 'django.contrib.auth' system.
-    See https://docs.djangoproject.com/en/dev/topics/auth/ for more details.
-
-    """
+    """User create by using  'django.contrib.auth' system 
+    see https://docs.djangoproject.com/en/dev/topics/auth/ for more detail"""
     username = request.POST['username']
     password = request.POST['password']
     retyped_password = request.POST['retypedPassword']
@@ -101,7 +88,6 @@ def log_user_in(request):
     """Attempts to sign the user in with the credentials they have provided.
     Returns the user back to the sign in page and displays an appropriate
     warning if the sign in is unsuccessful.
-
     """
 
     username = request.POST['username']
@@ -176,7 +162,7 @@ def log_out(request):
 
 
 # as in https://docs.djangoproject.com/en/dev/topics/http/file-uploads/
-from django.db import OperationalError
+
 
 
 def account(request):
@@ -184,10 +170,9 @@ def account(request):
 
 
 def photo(request):  # TODO: should be refactored
-    """Order the images of one user by id, and show the photo on webpage slide
-    form.
+    """Order the images of one user by id, 
+    and show the photo on webpage slide form. """
 
-    """
     # Handle file upload
     # if request.method == 'POST':
     #     # form = ImgForm(request.POST, request.FILES)
@@ -199,6 +184,40 @@ def photo(request):  # TODO: should be refactored
     #     return HttpResponseRedirect(reverse('website.views.list'))
 
     # Load images for the list page
+    message = {"status":""}
+    images=Image.objects.filter(user=request.user)
+    if request.is_ajax():
+        if request.POST['setting']=='delete':
+            if Image.objects.filter(user=request.user, id=request.POST['id']):         
+                setimg=Image.objects.filter(user=request.user, id=request.POST['id'])
+                setimg.delete()
+                message["status"]="OK"
+            else:
+                message["status"]="no image!"
+        else:
+                message["status"]="no image!"
+        json = simplejson.dumps(message)
+        return HttpResponse(json, content_type = 'application/json')
+
+    if request.method == 'POST':
+
+        #get the image object
+        # newimg = Image(imgfile = request.FILES['imgfile'])
+        newimg = Image(remote_path = request.POST['imgurl'])
+        # newtitle = request.FILES['imgfile'].name
+        # newimg.title = newtitle.split('.')[0]
+        newimg.save()
+
+        #add user
+        user = User.objects.get(username=request.user.username)
+        newimg.user.add(user)
+        # newimg.album.add(album)
+        # newimg.page.add(page)
+        # Redirect to the images list after POST
+        return HttpResponseRedirect(reverse('website.views.photo'))
+
+
+
     try:
         images = Image.objects.filter(user=request.user)
         first_id=100000
@@ -213,47 +232,65 @@ def photo(request):  # TODO: should be refactored
     params = {'images': images,"var": first_id}  # TODO: What if not images?
     return render(request, template, params)
 
-# def album(request):
-#     albums = Album.objects.filter(user = request.user)
-#     # images = Image.objects.filter(album = albums)
-#     return render_to_response(
-#         'album.html', {'albums': albums}, context_instance=RequestContext(request))
 
-
+import re
 def album_form(request):
     """Input the album title, when 'POST', create the new album. """
 
     '''Simple ajax deal with the album title conflict issue. '''
-    message = {"status": ""}
+    message = {"status":""}
     template = "albumform.html"
     params = {'message': 'Album already have, choose another title!'} 
-
     if request.is_ajax():
-        mytitle = request.POST['title_string']
-        if not Album.objects.filter(user=request.user, title_string=mytitle):
-            message["status"] = "OK to create"
+        mytitle=request.POST['title']
+        if not (re.match('^[\w-]+$', mytitle) is not None):
+            message["status"] = "Special symbols"
         else:
-            message["status"] = "fail to create"
+            if not Album.objects.filter(user=request.user, title=mytitle):
+            # if request.POST['title'] == 'wangyi':
+                message["status"] = "OK to create"
+            else:
+                message["status"] = "confilct"
         '''Provide message to html page as json. '''
         json = simplejson.dumps(message)
-        return HttpResponse(json, content_type='application/json')
+        return HttpResponse(json, content_type = 'application/json')
 
     if request.method == 'POST':
-        mytitle = request.POST['title']
-        if not Album.objects.filter(user=request.user, title_string=mytitle):
-            newalbum = Album(user=request.user, title_string=mytitle)
+        if " " in request.POST['title']:
+            '''If title input has space, replace space with '_'. 
+            Noticed: it is not a good solution now, should be fixed in the future.'''
+            title_array = request.POST['title'].split(" ")
+            mytitle = "_".join(title_array)
+            if not Album.objects.filter(user=request.user, title=mytitle):
+                newalbum = Album(title=mytitle)
+            else:
+                return render(request,template,params)
         else:
-            return render(request, template, params)
-
+            mytitle = request.POST['title']
+            if not Album.objects.filter(user=request.user, title=mytitle):
+                newalbum = Album(title=mytitle)
+                newalbum = Album(title=request.POST['title'])
+            else:
+                return render(request,template,params)
+        # FIXME: No hard-coding urls!
+        '''Assign the public url to album attribute. '''
+        # newalbum.public_url_suffix = "http://localhost.foo.fi:8000/public/"+request.user.username+"_"+newalbum.title
+        # FIXME: Suffix is still wrong!
+        # FIXME: No hard-coding urls!
+        newalbum.public_url_suffix = "http://fotosynteesi.herokuapp.com/public/"+request.user.username+"_"+newalbum.title
+        newalbum.collaboration_url_suffix = 'google.com'
+        
         #get the user object
         newalbum.save()
+        user = User.objects.get(username=request.user.username)
+        newalbum.user.add(user)
         return HttpResponseRedirect(reverse('website.views.album'))
     albums = Album.objects.filter(user=request.user)
     return render(request, template)
 
 
 def albumdetail(request, albumtitle):
-    """Not been used in the url, can be deleted. """
+    """ Not been used in the url, can be deleted"""
 
     albums = get_object_or_404(Album, user=request.user, title=albumtitle)
     if request.method == 'POST':
@@ -287,66 +324,42 @@ def albumdetail(request, albumtitle):
 
 
 def album_delete(request, albumtitle):
-    """Delete the album with the albumtitle and redirect to 'album' page. """
-    album_obj = Album.objects.filter(user=request.user, title=albumtitle)
-    images = Image.objects.filter(album=album_obj)
+    """ Delete the album with the albumtitle and redirect to 'album' page """
+    album = Album.objects.filter(user=request.user, title=albumtitle)
+    # images = Image.objects.filter(album=album)
     # for image in images:
-    images.delete()  # FIXME: This is wrong, images are not deleted
-    album_obj.delete()  # TODO: Realistically, albums shouldn't be either immediatl
+    # images.delete()  # FIXME: This is wrong, images are not deleted
+    album.delete()  # TODO: Realistically, albums shouldn't be either immediatl
 
     return HttpResponseRedirect(reverse('website.views.album'))
     
 
-def single_album_view(request, title_slug):
-    """Show the page detail inside one chosen album with its title. """
-    album_obj = get_object_or_404(Album, title_slug=title_slug)
-
-    if request.user == album_obj.user:
-        access_right = 'owner'
-    # elif request.user in album_obj.collaborators:
-    #     access_right = 'collaborator'
-    # elif request.REQUEST['collaborator_url_suffix'] == album_obj.collaboration_url_suffix:
-    #     album_obj.collaborators = request.user
-    #     access_right = 'collaborator'
-    # elif request.REQUEST['public_url_suffix'] == album_obj.public_url_suffix:
-    #     access_right = 'guest'
+def album_page(request, albumtitle):
+    """ Show the page detail inside one chosen album with its title """
+    album = get_object_or_404(Album,user=request.user, title=albumtitle)
+    pages = Page.objects.filter(album=album)
+    if not pages:
+        next_page = 1
     else:
-        return HttpResponse(status=CODE["Unauthorized"])
+        page_objects = Page.objects.filter(album=album)
+        page_number = page_objects.aggregate(Max('number'))['number__max']
+        next_page = page_number + 1
 
-    template = "single_album_view.html"
-    params = {'album_obj': album_obj, 'access_right': access_right}
+    template = "album_page.html"
+    params = {'album': album, 'pages': pages, 'next_page': next_page}
     return render(request, template, params)
 
 
-def single_page_view(request, title_slug, page_number):
+def page_layout(request, albumtitle, pagenumber):
+    """ Choose the possible layout of the page, 
+    and the layout attribute of the page will be given.
+    Notice: when user click the layout style, 
+    the page will be created no matter user upload photoes or not. """
+    album = get_object_or_404(Album, user=request.user, title=albumtitle)
+    alb_page = Page.objects.create(album=album, number=pagenumber, layout=1)
 
-    album_obj = Album.objects.get(title_slug=title_slug)  # TODO: rights
-    page_obj = Page.objects.get(album=album_obj, number=page_number)
-
-    template = "page_detail.html"
-    params = {'page_obj': page_obj, 'album_title': title_slug}
-    return render(request, template, params)
-
-
-def add_new_page(request, album_obj):
-    # album_obj = get_object_or_404(Album, user=request.user, title=album_title)
-    new_page = Page.objects.create(album=album_obj)
-    first_free_page_number = new_page.get_last() + 1
-    album_obj.add_page(new_page, None)
-
-    if new_page.number.__class__ is None:
-        raise TypeError("Page number of new page is not an int.")
-
-    return select_page_layout(request, new_page)
-
-
-def select_page_layout(request, page_obj):
-    """Allows user to select a new layout for a page. """
-    # album_obj = get_object_or_404(Album, user=request.user, title=albumtitle)
-    # alb_page = Page.objects.get(id=page_id)
-
-    template = "select_page_layout.html"
-    params = {'album': page_obj.album, 'page': page_obj}
+    template = "page_layout.html"
+    params = {'album': album, 'page': alb_page}
     return render(request, template, params)
 
 
@@ -361,96 +374,88 @@ def photoadd(request, albumtitle, pagenumber, layoutstyle):
     images=Image.objects.filter(user=request.user)
     if request.is_ajax():
         if request.POST['setting']=='set':
-            if Image.objects.filter(user=request.user, title=request.POST['title']):
-                message["status"]="get the image!"
-                setimg=Image.objects.get(user=request.user, title=request.POST['title'])
+            if Image.objects.filter(user=request.user, id=request.POST['id']):         
+                setimg=Image.objects.get(user=request.user, id=request.POST['id'])
                 setimg.album.add(album)
                 setimg.page.add(page)
+                message["status"]="OK"
             else:
                 message["status"]="no image!"
-                return HttpResponse("error get the image")
         else:
-            if Image.objects.filter(user=request.user, title=request.POST['title']):
-                message["status"]="get the image!"
-                setimg=Image.objects.get(user=request.user, title=request.POST['title'])
-                # setimg.album.remove(album)
-                # setimg.page.remove(page)
+            if Image.objects.filter(user=request.user, id=request.POST['id']):
+                setimg=Image.objects.get(user=request.user, id=request.POST['id'])
+                setimg.album.remove(album)
+                setimg.page.remove(page)
+                message["status"]="OK"
             else:
                 message["status"]="no image!"
-                return HttpResponse("error get the image")
-
         json = simplejson.dumps(message)
         return HttpResponse(json, content_type = 'application/json')
 
-    # if request.method == 'POST':
+    if request.method == 'POST':
 
-    #     #get the image object
-    #     newimg = Image(imgfile = request.FILES['imgfile'])
-    #     newtitle = request.FILES['imgfile'].name
-    #     newimg.title = newtitle.split('.')[0]
-    #     newimg.save()
+        #get the image object
+        # newimg = Image(imgfile = request.FILES['imgfile'])
+        newimg=Image(remote_path=request.POST['imgurl'])
+        # newtitle = request.FILES['imgfile'].name
+        # newimg.title = newtitle.split('.')[0]
+        newimg.save()
 
-    #     #add user
-    #     user = User.objects.get(username=request.user.username)
-    #     newimg.user.add(user)
-    #     newimg.album.add(album)
-    #     newimg.page.add(page)
-    #     # Redirect to the images list after POST
-    #     return HttpResponseRedirect(reverse('website.views.photoadd', 
-    #         kwargs={'albumtitle':album.title, 'pagenumber': page.number, 'layoutstyle':page.layout}))
+        #add user
+        user = User.objects.get(username=request.user.username)
+        newimg.user.add(user)
+        # newimg.album.add(album)
+        # newimg.page.add(page)
+        # Redirect to the images list after POST
+        return HttpResponseRedirect(reverse('website.views.photoadd', 
+            kwargs={'albumtitle':album.title, 'pagenumber': page.number, 'layoutstyle':page.layout}))
 
     # images = Image.objects.filter(album=album,page=page)
     
     return render_to_response(
-        'photoadd.html', {'images': images, 'album': album_obj, 'page': page},
+        'photoadd.html', {'images': images, 'album': album, 'page': page, 'layoutstyle':page.layout}, 
         context_instance=RequestContext(request))
 
 
-# def page_detail(request, albumtitle, pagenumber):
-#     """Show the page with its photo in the webpage. """
-#     album_obj = get_object_or_404(Album, user=request.user, title=albumtitle)
-#     page = Page.objects.filter(album=album_obj, number=pagenumber)
-#     images = Image.objects.filter(user=request.user, album=album_obj, page=page)
+def page_detail(request, albumtitle, pagenumber):
+    """Show the page with its photo in the webpage """
+    album = get_object_or_404(Album, user=request.user, title=albumtitle)
+    page = Page.objects.filter(album=album, number=pagenumber)
+    images = Image.objects.filter(user=request.user, album=album, page=page)
 
-    # template = "page_detail.html"
-    # params = {'album': album_obj, 'page': page, 'images': images}
-    # return render(request, template, params)
+    template = "page_detail.html"
+    params = {'album': album, 'page': page, 'images': images}
+    return render(request, template, params)
 
 
 def page_delete(request, albumtitle, pagenumber):
     """Delete the selected page. """
-    album_obj = get_object_or_404(Album, user=request.user, title=albumtitle)
-    page = Page.objects.filter(album=album_obj, number=pagenumber)
-    images = Image.objects.filter(user=request.user, album=album_obj, page=page)
-    images.delete()
+    album = get_object_or_404(Album, user=request.user, title=albumtitle)
+    page = Page.objects.filter(album=album, number=pagenumber)
+    # images = Image.objects.filter(user=request.user, album=album, page=page)
+    # images.delete()
     page.delete()
-    viewname = 'website.views.single_album_view', "kwargs={'albumtitle':album.title}"
+    viewname = 'website.views.album_page'
+    params = {'albumtitle':album.title}
 
-    return HttpResponseRedirect(reverse(viewname))
+    return HttpResponseRedirect(reverse(viewname, kwargs=params))
 
 
 def album_order(request, albumtitle):
-    """Order the album by filling a order form. """
+    """Order the album by filling a order form """
 
-    album_obj = get_object_or_404(Album,user=request.user, title=albumtitle)
+    album = get_object_or_404(Album,user=request.user, title=albumtitle)
 
     template = "album_order.html"
-    params = {'album': album_obj}
+    params = {'album': album}
     return render(request, template, params)
 
 
 def order_submit(request, albumtitle):
-    """Submit the order to the order system.
+    """Submit the order to order system.
+    'sid', 'pid', 'redirect url' as well as 'amount' value need to given in the system. """
 
-    Required keywords for the system:
-    sid --
-    pid --
-    redirect_url --
-    amount --
-
-    """
-
-    album_obj = get_object_or_404(Album, user=request.user, title=albumtitle)
+    album = get_object_or_404(Album, user=request.user, title=albumtitle)
     if request.method == "POST":
         # set the new order object
         neworder = Order.objects.create(
@@ -462,7 +467,7 @@ def order_submit(request, albumtitle):
             country=request.POST.get('country', False),
             item_count=request.POST.get('item_count', False),
             sid="group42",
-            album=album_obj)
+            album=album)
         # neworder = Order(album = album, user=request.user)
 
         #set the pid for each independent order
@@ -471,22 +476,22 @@ def order_submit(request, albumtitle):
         neworder.total_cost = str(10*int(neworder.item_count))
         #use time_placed as pid, then it will be unique to each pid.
         neworder.pid = str(neworder.time_placed)
-        neworder.checksum = neworder.generate_checksum()
+        neworder.checksum = neworder.checksumfunc()
 
         # FIXME: No hard-coding urls!
-        #neworder.success_url = "http://fotosynteesi.herokuapp.com/album/"
-        #neworder.cancel_url = "http://fotosynteesi.herokuapp.com/album/"+album.title+"/paycancel"
-        #neworder.error_url = "http://fotosynteesi.herokuapp.com/album/"+album.title+"/payerror"
+        neworder.success_url = "http://fotosynteesi.herokuapp.com/album/"
+        neworder.cancel_url = "http://fotosynteesi.herokuapp.com/album/"+album.title+"/paycancel"
+        neworder.error_url = "http://fotosynteesi.herokuapp.com/album/"+album.title+"/payerror"
         
         # FIXME: No hard-coding urls!
-        neworder.success_url = "http://localhost.foo.fi:8000/album/"
-        neworder.cancel_url = "http://localhost.foo.fi:8000/album/"+album_obj.title+"/paycancel"
-        neworder.error_url = "http://localhost.foo.fi:8000/album/"+album_obj.title+"/payerror"
+        # neworder.success_url = "http://localhost.foo.fi:8000/album/"
+        # neworder.cancel_url = "http://localhost.foo.fi:8000/album/"+album.title+"/paycancel"
+        # neworder.error_url = "http://localhost.foo.fi:8000/album/"+album.title+"/payerror"
 
         neworder.save()
 
         template = "order_submit.html"
-        params = {'album': album_obj, 'order': neworder}
+        params = {'album': album, 'order': neworder}
     else:
         template = "album.html"
         params = {}
@@ -507,22 +512,20 @@ def paysuccess(request, albumtitle):
 
 
 def paycancel(request, albumtitle):
-    """Pay cancel.
-
-    Note: when click cancel in the order system, the order still there need to
-    be deleted in the future. """
+    """Pay cancel. Notice: when click cancel in the order syste, 
+    the order still there need to be deleted in the future. """
 
     return HttpResponse("paycancel")
 
 
 def payerror(request, albumtitle):
-    """Pay error, same as paycancel. """
+    """Pay error, same as paycancel """
 
     return HttpResponse("payerror")
 
 
 def order_detail(request):
-    """Give the order lists with details of a user. """
+    """Give the order lists with details of a user """
 
     orders = Order.objects.filter(user=request.user)
     params = {'orders': orders}
@@ -534,15 +537,12 @@ def order_detail(request):
 @facebook_required(scope='publish_stream')
 @csrf_protect
 def facebook_post(request, graph, albumtitle):
-    """By using the django_facebook app, get the graph object, and post
-    directly on user's facebook.
+    """By using the django_facebook app, get the graph object, 
+    and post directly on user's facebook.
+    Reference:  https://github.com/tschellenbach/django-facebook """
 
-    Reference:  https://github.com/tschellenbach/django-facebook
-
-    """
-
-    album_obj = get_object_or_404(Album, user=request.user, title=albumtitle)
-    message = album_obj.public_url_suffix
+    album = get_object_or_404(Album, user=request.user, title=albumtitle)
+    message = album.public_url_suffix
     if message:
         graph.set('me/feed', message=message)
         messages.info(request, 'Posted the message to your wall.')
@@ -567,9 +567,10 @@ def publicalbum(request, albumurl):
     # public url: http://domain.tld[:port]/user/album/t7E5UEqsjgxFjjFRXw7h
 
     # FIXME: No hard-coding urls!
-    my_public_url_suffix = "http://localhost.foo.fi:8000/public/"+albumurl
-    album_obj = get_object_or_404(Album,public_url_suffix=my_public_url_suffix)
-    pages = Page.objects.filter(album=album_obj)
+    # my_public_url_suffix = "http://localhost.foo.fi:8000/public/"+albumurl
+    my_public_url_suffix = "http://fotosynteesi.herokuapp.com/public/"+albumurl
+    album = get_object_or_404(Album,public_url_suffix=my_public_url_suffix)
+    pages = Page.objects.filter(album=album)
 
     template = "public_album.html"
     params = {'pages': pages, 'url':albumurl}
@@ -582,10 +583,11 @@ def publicpage(request,albumurl,pagenumber):
 
     # FIXME: No hard-coding urls!
     # FIXME: Not the right idea for suffix!
-    my_public_url_suffix = "http://localhost.foo.fi:8000/public/"+albumurl
-    album_obj = get_object_or_404(Album,public_url_suffix=my_public_url_suffix)
-    page = Page.objects.filter(album=album_obj, number=pagenumber)
-    images = Image.objects.filter(album=album_obj, page=page)
+    # my_public_url_suffix = "http://localhost.foo.fi:8000/public/"+albumurl
+    my_public_url_suffix = "http://fotosynteesi.herokuapp.com/public/"+albumurl
+    album = get_object_or_404(Album,public_url_suffix=my_public_url_suffix)
+    page = Page.objects.filter(album=album, number=pagenumber)
+    images = Image.objects.filter(album=album, page=page)
 
     return render_to_response(
-        'public_page.html', {'album': album_obj, 'page': page, 'images': images})
+        'public_page.html', {'album': album, 'page': page, 'images': images})

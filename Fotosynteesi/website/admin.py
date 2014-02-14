@@ -1,21 +1,20 @@
 from django.contrib import admin
 from django import forms
 from .models import *
-
+# Register your models here.
 
 class ImageAdminForm(forms.ModelForm):
 
-    class Meta(object):
+    class Meta:
         model = Image
 
-
 class ImageAdmin(admin.ModelAdmin):
-    list_display = ['remote_path']
+    list_display = ['title']
     form = ImageAdminForm
 
 
 class AlbumAdmin(admin.ModelAdmin):
-    list_display = ['title_string']
+    list_display = ['title']
 
 
 class PageAdmin(admin.ModelAdmin):

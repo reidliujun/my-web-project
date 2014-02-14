@@ -1,194 +1,20 @@
-#!/usr/bin/env python
-# coding: utf-8
-from django.contrib.auth.models import User
+# -*- coding: utf-8 -*-
 from django.db import models as m
-from django.db import IntegrityError
-from django.core.exceptions import ValidationError
-from django.core.validators import RegexValidator
-from django.utils.text import slugify
+from django.contrib.auth.models import User
+from django.db.models.signals import pre_delete
+from django.dispatch.dispatcher import receiver
 import datetime
-from uuid import uuid4
-
-# Constants
-SELLER_ID = 'group42'
-CHECKSUM_TOKEN = '01d46c1d7f4cbe9686f7d1d8aec559d6'
-BASE_CURRENCY = 'EUR'
-BASE_UNIT_COST = 22.5  # in BASE_CURRENCY
-COST_PER_PAGE = 1.35  # in BASE_CURRENCY
 
 
 class Album(m.Model):
-    """Docstring goes here. """
+    title = m.CharField(max_length=255)
+    public_url_suffix = m.CharField(max_length=255)
+    collaboration_url_suffix = m.CharField(max_length=255)
+    user = m.ManyToManyField(User)
 
-    class Meta(object):
-        unique_together = ('user', 'title_slug')
-
-    # this allows for us to use user.albums to get a user's albums
-    user = m.ForeignKey(User, related_name='albums')
-
-    # this feature adds some complications to the project, may want to drop
-    # collaborators = m.ManyToManyField(User)
-
-    title_string = m.CharField(max_length=50, verbose_name="Album title")
-    title_slug = m.SlugField(blank=True, null=True)
-    public_url_suffix = m.SlugField(max_length=32, blank=True)
-    collaboration_url_suffix = m.SlugField(max_length=32, blank=True)
-
-    def get_last_page_number(self):
-        """Helper function for add_page().
-
-        """
-        # Query set containing all page objects / (this hits database)
-        pp_all_qset = Page.objects.select_related('album')
-
-        # Query set containing all page objects in this album
-        pp_album_qset = pp_all_qset.filter(album=self)
-
-        # Query set containing all page objects in this album rev sorted by #
-        pp_album_qset_sorted = pp_album_qset.order_by('-number')
-
-        # Now we can do many things: last page number, etc.
-
-        # List containing all page objects in this album rev sorted by #
-        pp_album_list_sorted = list(pp_album_qset_sorted)
-
-        # First page object from the reverse sorted list
-        last_page_object = pp_album_list_sorted[0]
-
-        last_page_number = last_page_object.number
-
-        if not last_page_number.__class__ == int:
-            errmsg = "Get page number failed, got %s instead of int."
-            raise TypeError(errmsg % last_page_number.__class__)
-
-        return last_page_number
-
-    def add_new_page_to_location(self, location_index):
-        """Creates a page and adds it to the requested location within the
-        album. """
-
-        page_objs = self.pages.all()
-        for page in page_objs:
-            if page.number >= location_index:
-                page.number += 1
-                page.save()
-
-        return Page.objects.create(album=self, number=location_index)
-
-    def add_new_page_to_end(self):
-        """Creates a new page and numbers it as the last page of the album. """
-        last_page_number = self.get_last_page_number()
-        return self.add_new_page_to_location(last_page_number + 1)
-
-    def generate_url_suffix(self, suffix_type):
-        """Generates a random string, 32 characters in length, and saves it in
-        the appropriate variable within the Album object. """
-        if suffix_type == 'public':
-            self.public_url_suffix = str(uuid4()).replace('-', '')
-        elif suffix_type == 'collaboration':
-            self.collaboration_url_suffix = str(uuid4()).replace('-', '')
-        else:
-            errmsg = "url suffix type can either be 'public'"
-            errmsg += " or 'collaboration', got '%s'." % suffix_type
-            raise ValueError(errmsg)
-
-    def calculate_item_cost(self):
-        page_count = Page.objects.filter(album=self).count()
-        return BASE_UNIT_COST + COST_PER_PAGE * page_count
-
-    def clean(self):
-        """Validates inputs. """
-
-        if not self.user:
-            raise ValidationError("An album must be associated to a user.")
-
-        # Converts title_string to unicode and creates title_slug.
-        # if len(self.title_string) < 1:
-        #     raise ValidationError("The title_string cannot be blank.")
-
-        self.title_string = unicode(self.title_string)
-
-        if Album.objects.filter(user=self.user, title_string=self.title_string).count() > 0:
-            raise ValidationError("This user already has an album with this title_string.")
-
-        self.title_slug = slugify(self.title_string)
-
-        if Album.objects.filter(user=self.user, title_slug=self.title_slug).count() > 0:
-            errmsg = "This user already has an album where title_string results"
-            errmsg += " in the same title_slug."
-            raise ValidationError(errmsg)
-
-    def save(self, *args, **kwargs):
-        """Overrides the default save function. """
-        try:
-            self.full_clean()
-        except ValidationError as e:
-            return e
-        super(Album, self).save(*args, **kwargs)
-
-    def __unicode__(self):
-        """The string representation of this object is its title. """
-        return self.title_string
-
-
-class Page(m.Model):
-
-    class Meta(object):
-        ordering = ['-number']
-
-    album = m.ForeignKey(Album, related_name='pages')
-    layout = m.PositiveSmallIntegerField(default=1)
-    number = m.PositiveSmallIntegerField()
-    # front_cover = m.BooleanField(default=False) TODO: implement this?
-    # back_cover = m.BooleanField(default=False) TODO: implement this?
-
-    def get_last(self):
-        album_pages = Page.objects.filter(album=self.album)
-        last_page = album_pages.order_by('-number')[0]
-        if last_page.number < 0:
-            return 0
-        return last_page.number
-
-    def activate(self, to):
-        active_album_pages = Page.objects.filter(album=self.album,
-                                                 number__gte=to)
-        for page in active_album_pages:
-            page.number += 1
-        self.number = to
-
-    def deactivate(self):
-        active_album_pages = Page.objects.filter(album=self.album,
-                                                 number__gt=self.number)
-        self.number = -1
-        for page in active_album_pages:
-            page.number -= 1
-
-    def __unicode__(self):
-        return unicode(self.number) + " in " + unicode(self.album)
-
-
-class Image(m.Model):
-    """Represents a single referenced (or uploaded) photograph. """
-    # title = m.CharField(max_length=30)  # TODO: Why? No need...
-    # FIXME: This is bad, we have to upload to user specific directories
-    imgfile = m.ImageField(upload_to='documents/%Y/%m/%d')
-    remote_path = m.URLField(blank=False, null=False)
-    page = m.ManyToManyField(Page)
-    layout_position = m.PositiveSmallIntegerField()
-    album = m.ManyToManyField(Album)
-    user = m.ManyToManyField(User)  # TODO: Think whether this is needed
-
+    
     def __unicode__(self):
         return self.title
-
-    def delete(self, *args, **kwargs):
-        """Docstring goes here. """
-        # get the page and storage before delete
-        storage, path = self.imgfile.storage, self.imgfile.path
-        # Delete the model before the file
-        super(Image, self).delete(*args, **kwargs)
-        # Delete the imagefile after the model
-        storage.delete(path)
 
 
 class Order(m.Model):
@@ -203,9 +29,12 @@ class Order(m.Model):
     on a per order basis, as users are free to order their albums to whom ever
     they would like to. (default: last used values)
 
-    item_cost -- (BASE_UNIT_COST) + (# of pages in the album) * (COST_PER_PAGE)
+    item_cost -- (base cost) + (# of pages in the album) * (page cost)
+
     shipping_cost -- (country coefficient) * (order weight)
+
     total_cost -- item_count * item_cost + shipping_cost
+
     estimated_arrival_date -- Calculated based on country shipped to.
 
     """
@@ -221,25 +50,32 @@ class Order(m.Model):
 
     # Item names, counts, costs, and relevant dates/times
     item_count = m.PositiveSmallIntegerField(default=1)  # TODO: multipl albums
+    order_weight = m.FloatField(default=50)  # TODO: item_count * album pages
     currency = m.CharField(max_length=3, default="EUR")
-    item_cost = m.FloatField(default=BASE_UNIT_COST)  # TODO: Change this to do the math.
+    item_cost = m.FloatField(default=55)  # TODO: Change this to do the math.
     shipping_cost = m.FloatField(default=10)  # TODO: calculate this
     total_cost = m.FloatField(default=65)  # TODO: make this calculate
     # TODO: status choices
     status = m.CharField(max_length=255, default="Awaiting confirmation")
-    time_placed = m.DateTimeField(default=datetime.datetime.now())
+    time_placed = m.DateTimeField('Order time', default=datetime.datetime.now())
     # TODO: should do math
-    estimated_arrival_date = m.DateTimeField(default=datetime.datetime.now()+datetime.timedelta(days=10))
+    estimated_arrival_date = m.DateTimeField('Estimated arrival date',
+                                             default=datetime.datetime.now()+datetime.timedelta(days=10))
 
-    # Payment ID to identify the payment used for this order
+    # Payment id to identify this payment
     pid = m.CharField(max_length=255)
 
-    sid = m.CharField(max_length=255, default=SELLER_ID)
+    # sid = group42
+    sid = m.CharField(max_length=255)
 
     success_url = m.CharField(max_length=255, blank=True, null=True)
     cancel_url = m.CharField(max_length=255, blank=True, null=True)
     error_url = m.CharField(max_length=255, blank=True, null=True)
     checksum = m.CharField(max_length=255)
+    # order_status = m.CharField(max_length=255) # need to think about this
+    # time_placed = m.DateTimeField()
+    # def __unicode__(self):
+    #     return self.user
 
     def get_order_details(self):
         """Returns a list of user-relevant order details for template use. """
@@ -264,28 +100,49 @@ class Order(m.Model):
         ]
         return details
 
-    def generate_checksum(self):
-        """Generate the checksum value according to user pid, sid, amount and
-        the token, will be used for verification in the order system.
+    def __unicode__(self):  # TODO: What is this?
+        return "Order:" + self.user.username + ";"
 
-        """
-        import hashlib
-        amount = unicode(self.total_cost)
-        checksumstr = ("pid=" + self.pid +
-                       "&sid=" + self.sid +
-                       "&amount=" + amount +
-                       "&token=" + CHECKSUM_TOKEN)
-
-        mm = hashlib.md5.new(checksumstr)
+    ''' Generate the checksum value according to user pid, sid, amount and the token, 
+        will be used for verification in the order system.'''
+    def checksumfunc(self):
+        """Calculates the sumsecurity for payment system. """
+        import md5
+        checksumstr = "pid="+self.pid+"&sid="+self.sid+"&amount="+self.total_cost+"&token=01d46c1d7f4cbe9686f7d1d8aec559d6"
+        mm = md5.new(checksumstr)  # FIXME: the module md5 is deprecated
         self.checksum = mm.hexdigest()
         return self.checksum
-        # import md5
-        # checksumstr = "pid="+self.pid+"&sid="+self.sid+"&amount="+self.total_cost+"&token=01d46c1d7f4cbe9686f7d1d8aec559d6"
-        # mm = md5.new(checksumstr)  # FIXME: the module md5 is deprecated
-        # self.checksum = mm.hexdigest()
-        # return self.checksum
+
+
+class Page(m.Model):
+    album = m.ForeignKey(Album)
+    layout = m.PositiveSmallIntegerField()
+    number = m.PositiveSmallIntegerField()
 
     def __unicode__(self):
-        return "%s copies of %s ordered on %s" % (
-            self.item_count, self.album.title, self.time_placed)
+        return "Album:" + self.album.title + "; Page:" + str(self.number)
 
+# class Photo(m.Model):
+#     album = m.ManyToManyField(Album)
+#     page = m.ManyToManyRel(Page)
+
+
+class Image(m.Model):
+    title = m.CharField(max_length=30,blank=True,null=True)
+    # FIXME: This is bad, we have to upload to user specific directories
+    # imgfile = m.ImageField(upload_to='documents/%Y/%m/%d',blank=True,null=True)
+    remote_path = m.URLField(blank=False, null=False)
+    page = m.ManyToManyField(Page)
+    user = m.ManyToManyField(User)
+    album = m.ManyToManyField(Album)
+
+    def __unicode__(self):
+        return self.remote_path
+
+    # def delete(self, *args, **kwargs):
+    #     # get the page and storage before delete
+    #     storage, path = self.imgfile.storage, self.imgfile.path
+    #     # Delete the model before the file
+    #     super(Image, self).delete(*args, **kwargs)
+    #     # Delete the imagefile after the model
+    #     storage.delete(path)
