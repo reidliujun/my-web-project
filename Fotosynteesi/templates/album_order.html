@@ -19,13 +19,13 @@
 					
 					{% csrf_token %}
 					<div class="form-group">
-						<p><label for="first_name">Firstname:</label> <input class="form-control" type="text" name="firstname" value="Jun" id="first_name" placeholder="Firstname"/></p>
-						<p><label for="last_name">Lastname:</label> <input class="form-control" type="text" name="lastname" value="Liu" id="last_name" placeholder="Lastname" /></p>
-						<p><label for="street_address">Street Address:</label> <input class="form-control" type="text" name="street_address" value="JMT 10E" id="street_address" placeholder="Street Address" /></p>
-						<p><label for="post_code_and_city">Post code and city:</label> <input class="form-control" type="text" name="post_code_and_city" value="02150, ESPOO" id="post_code_and_city" placeholder="Post code and city" /></p>
-						<p><label for="country">Country:</label> <input class="form-control" type="text" name="country" value="Finland" id="country" placeholder="Country" /></p>
-						<p><label for="item_count">Copies to order:</label> <input class="form-control" type="text" name="item_count" value="10" id="item_count" placeholder="1"/></p>
-						<input class="btn btn-default" type="submit" value="Order"/>
+						<p><label for="first_name">Firstname:</label> <input class="form-control" type="text" name="firstname"  id="first_name" placeholder="Firstname" required/></p>
+						<p><label for="last_name">Lastname:</label> <input class="form-control" type="text" name="lastname" id="last_name" placeholder="Lastname" required/></p>
+						<p><label for="street_address">Street Address:</label> <input class="form-control" type="text" name="street_address" id="street_address" placeholder="Street Address" required/></p>
+						<p><label for="post_code_and_city">Post code and city:</label> <input class="form-control" type="text" name="post_code_and_city" id="post_code_and_city" placeholder="Post code and city" required/></p>
+						<p><label for="country">Country:</label> <input class="form-control" type="text" name="country" id="country" placeholder="Country" required/></p>
+						<p><label for="item_count">Copies to order:</label> <input class="form-control" type="text" name="item_count" id="item_count" placeholder="Copies to order" required/></p>
+						<input class="btn btn-default" type="submit" />
 					</div>
 
 				</form>

@@ -1,4 +1,4 @@
-30.1.2014
+﻿30.1.2014
 
 1. in templates
 add several template files
@@ -46,3 +46,13 @@ c. Mainly add the view and url file to launch the share function
 2. modified the public visit page
 3. fixed the bug when user input the album title with space (in template "albumform" function)
 4. add some essential code (commented now) and file (maily Procfile and requirements.txt) should be used when deployed on heroku
+
+
+14.2.2014
+photo url:
+
+1. https://fbcdn-sphotos-c-a.akamaihd.net/hphotos-ak-frc1/t1/420427_174995132605063_655377868_n.jpg
+2. https://scontent-a-ams.xx.fbcdn.net/hphotos-ash2/t1/399824_174885759282667_1457081311_n.jpg
+3. https://fbcdn-sphotos-e-a.akamaihd.net/hphotos-ak-frc1/t1/432305_174885539282689_1808015767_n.jpg
+4. https://fbcdn-sphotos-g-a.akamaihd.net/hphotos-ak-ash2/t1/p206x206/316206_126353670802543_2032194660_n.jpg
+5. https://fbcdn-sphotos-a-a.akamaihd.net/hphotos-ak-ash2/t1/p206x206/423391_174884495949460_2049112559_n.jpg

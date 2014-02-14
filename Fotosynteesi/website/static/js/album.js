@@ -3,30 +3,8 @@ $(document).ready(function() {
        interval: false
    	});
 
-    var upload_photo = function() {
-        var img_number = $('img').length;
-        // var name = $('#title').attr('title');
 
-        // $('.orderattr').bind('click', function () {
-	     if (img_number != 0){
-	        $.ajax({
-	            type: "POST",
-	            url: window.location.pathname,
-	            data: {'number': img_number}
-	        })
-	        .done(function(data){
-	            if(data.status=="Image full"){
-	              $(".photoadd-form").hide();
-	            }
-	            else{
-	              $(".photoadd-form").show();
-	            }
-	            
-	        });
-	     }
-	     
-    };
-
+    //Detection whether the input album title is already existed or not.
     $( "#albumadd_title" ).focusout(function(){
     	var value = $('#albumadd_title').val();
 	     if (value != ""){
@@ -55,10 +33,9 @@ $(document).ready(function() {
 	 });
 
    
-    // below code is referred from: http://jsfiddle.net/circle73/gqSaq/3/
+    // image draggable feature, below code is referred from: http://jsfiddle.net/circle73/gqSaq/3/
         // image deletion function
 
-    
 
     // there's the gallery and the trash
     var $gallery = $( ".gallery" );
@@ -128,12 +105,6 @@ $(document).ready(function() {
     function deleteImage5( $item ) {
       $item.fadeOut(function() {
         var $list = $( "<ul class='gallery ui-helper-reset'/>" ).appendTo( $trash5 );
-        // $item.appendTo( $list ).fadeIn(function() {
-        //   $item
-        //     .animate({ width: "180px" })
-        //     .find( "img" )
-        //       .animate({ height: "140px" });
-        // });
       });
     }
 
@@ -165,27 +136,8 @@ $(document).ready(function() {
       activeClass: "custom-state-active",
       drop: function( event, ui ) {
         recycleImage( ui.draggable );
-        // var mId= ui.draggable.attr("id");
-        // if (mId=="trash"){
-        $trash.droppable( "option", "disabled", false );
-        // $trash1.droppable( "option", "disabled", false );
-        // $trash2.droppable( "option", "disabled", false );
-        // $trash3.droppable( "option", "disabled", false );
-        // $trash4.droppable( "option", "disabled", false );
-        // }
-        // else if(mId=="trash1"){
-          // $trash1.droppable( "option", "disabled", false );
-        // }
-        // else if(mId=="trash2"){
-          // $trash2.droppable( "option", "disabled", false );
-        // }
-        // else if(mId=="trash3"){
-          // $trash3.droppable( "option", "disabled", false );
-        // }
-        // else if(mId=="trash4"){
-          // $trash4.droppable( "option", "disabled", false );
-        // }
         var img_id=ui.draggable.attr("id");
+        //ajax to clear the image from the model
         $.ajax({
             type: "POST",
             url: window.location.pathname,
@@ -204,7 +156,7 @@ $(document).ready(function() {
       drop: function( event, ui ) {
 
         deleteImage( ui.draggable );
-        $trash.droppable( "option", "disabled", true );
+        // $trash.droppable( "option", "disabled", true );
         var img_id=ui.draggable.attr("id");
         $.ajax({
             type: "POST",
@@ -313,7 +265,6 @@ $(document).ready(function() {
       drop: function( event, ui ) {
 
         deleteImage5( ui.draggable );
-        // $trash4.droppable( "option", "disabled", true );
         var img_id=ui.draggable.attr("id");
         $.ajax({
             type: "POST",

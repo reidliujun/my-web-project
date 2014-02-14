@@ -4,6 +4,7 @@
 
 <hr><hr>
 
+
 > *General description of what you are doing and how you are doing that (what kinds of views, models are needed), how they relate to each other, and what is the implementation order and timetable.*
 
 > - *What features you plan to implement?*
@@ -12,9 +13,64 @@
 
 > - *For each feature, how do you plan to implement it?*
 
+
+###Statement: I agree this project to be forked on 14.02.2014 17:34 by Erik Enomaa.
+
 <hr><hr>
+# Final submission infomation
+###Your names and student-ids:
+Name: Jun Liu
+
+Student ID: 275194 
+
+###What features you implemented and how much points you would like to give to yourself from those? Where do you feel that you were successful and where you had most problems.
+
+We have implemented user system, album public link generation, public share, social login and album share, album order, ajax using, photo upload with given url and elements delete (include album, page and images delete).
+
+I think the ajax detection of conflict album title and image drag feature are successful and the problems include database design, website UI design and url design.
+
+###How you divided the work between the team members - who did what?
+
+I  (Jun Liu) have done the following jobs:
+
+-facebook login and share
+
+-part of the models design (order model part) 
+
+-UI design 
+
+-javascript including ajax and images drag and delete 
+
+-80%-90% views code (included the ajax and post request handle, redirect) and all order feature.
+
+-all the templates creation 
+
+-URL design
+
+Erik has done the following jobs:
+
+Project plan -> full credit.
+
+Models -> plan and execution except order part
+
+Views -> login related views.
+
+###Instructions how to use your application and link to Heroku where it is deployed.
+
+Once visit our website, first user can register and login as a user, and user can create album, pages. When user create the page, he can choose the layout and drag the photos from the images pool to the page, and it will directly append the photos to the pages. 
+
+User can also share, order and delete the album when in the “/album” page. User can view all the images he has in the “photo” tag and also view the order history and account information.
+
+###The link to heroku: fotomemo.herokuapp.com
+
+
+
+
 # General information about the project
 This project is intended to be run on Python 2.7.2, with other dependencies as noted in requirements.txt.
+
+
+
 
 # Requirements / Graded Items
 
@@ -40,6 +96,7 @@ Function details: dragging photo to the album page layout from the photo pool.
 ###Public link to photo albums (max 70 points)
 Provide a public link just like google doc. Not allow editing.
 Possible way: saved the album in database with a random key value (probably hash and key generated according to the time stamp and album name). The public link could be “url + key”.
+Comments: in this version, the url is a hexdigest generated using username and album title.
 
 ###Share albums (max 80 points)
 Publish the generated public link to Facebook (using [facebook share javascript api for web](https://developers.facebook.com/docs/plugins/share-button/)).
@@ -55,10 +112,10 @@ Two ways of adding photo to the pool:
 2. add photo by searching in flickr (possibile gallery api: using the personal flickr photo pool with the user ID ).
 
 ###3rd party login (max 100 points)
-Facebook. Use [Facebook login api for javascript](https://developers.facebook.com/docs/facebook-login/login-flow-for-web/).
+Facebook. Use django-facebook app for easy use (https://github.com/tschellenbach/Django-facebook)
 
 ###Use of Ajax (max 100 points)
-Operation like page flipping, dragging and dropping saved in server.
+Album title conflicts detection, images dragging and dropping saved in server.
 
 ###Non-functional requirements (max 200 points)
 Overall **documentation**, demo **(\*)**, teamwork, and project management as seen from the history of your github project.
@@ -163,6 +220,8 @@ URL | Action / View
 *Note: This is important, because we cannot have it so that '/album/\<album_title\>/'
 is the album url and as a result only one user can have an album called "Florida Trip"*
 
+
+
 <hr><hr>
 # Mockups
 ![Album View](Fotosynteesi/readme_files/album_view.jpg?raw=true)
@@ -185,6 +244,5 @@ is the album url and as a result only one user can have an album called "Florida
 10. Share on third party service. (week 7)
 11. Testing/tweaking. (week 7)
 
-As of now, mockups are obsolete. :(
 
 <hr><hr>

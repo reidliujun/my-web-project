@@ -277,7 +277,14 @@ def album_form(request):
         # newalbum.public_url_suffix = "http://localhost.foo.fi:8000/public/"+request.user.username+"_"+newalbum.title
         # FIXME: Suffix is still wrong!
         # FIXME: No hard-coding urls!
-        newalbum.public_url_suffix = "http://fotosynteesi.herokuapp.com/public/"+request.user.username+"_"+newalbum.title
+        '''Generate the public url for the album by use hexdigest'''
+        import md5
+        albumurl = request.user.username+"_"+newalbum.title
+        albumurlm = md5.new(albumurl)  # FIXME: the module md5 is deprecated
+        albumurldigest = albumurlm.hexdigest()
+
+        newalbum.public_url_suffix = "http://fotomemo.herokuapp.com/public/"+albumurldigest
+        # newalbum.public_url_suffix = "http://localhost.foo.fi:8000/public/"+albumurldigest
         newalbum.collaboration_url_suffix = 'google.com'
         
         #get the user object
@@ -422,9 +429,10 @@ def page_detail(request, albumtitle, pagenumber):
     album = get_object_or_404(Album, user=request.user, title=albumtitle)
     page = Page.objects.filter(album=album, number=pagenumber)
     images = Image.objects.filter(user=request.user, album=album, page=page)
-
+    allimages = Image.objects.filter(user=request.user)
     template = "page_detail.html"
-    params = {'album': album, 'page': page, 'images': images}
+    params = {'album': album, 'page': page, 'images': images, 'allimages':allimages}
+
     return render(request, template, params)
 
 
@@ -479,9 +487,9 @@ def order_submit(request, albumtitle):
         neworder.checksum = neworder.checksumfunc()
 
         # FIXME: No hard-coding urls!
-        neworder.success_url = "http://fotosynteesi.herokuapp.com/album/"
-        neworder.cancel_url = "http://fotosynteesi.herokuapp.com/album/"+album.title+"/paycancel"
-        neworder.error_url = "http://fotosynteesi.herokuapp.com/album/"+album.title+"/payerror"
+        neworder.success_url = "http://fotomemo.herokuapp.com/album/"
+        neworder.cancel_url = "http://fotomemo.herokuapp.com/album/"+album.title+"/paycancel"
+        neworder.error_url = "http://fotomemo.herokuapp.com/album/"+album.title+"/payerror"
         
         # FIXME: No hard-coding urls!
         # neworder.success_url = "http://localhost.foo.fi:8000/album/"
@@ -568,7 +576,7 @@ def publicalbum(request, albumurl):
 
     # FIXME: No hard-coding urls!
     # my_public_url_suffix = "http://localhost.foo.fi:8000/public/"+albumurl
-    my_public_url_suffix = "http://fotosynteesi.herokuapp.com/public/"+albumurl
+    my_public_url_suffix = "http://fotomemo.herokuapp.com/public/"+albumurl
     album = get_object_or_404(Album,public_url_suffix=my_public_url_suffix)
     pages = Page.objects.filter(album=album)
 
@@ -584,7 +592,7 @@ def publicpage(request,albumurl,pagenumber):
     # FIXME: No hard-coding urls!
     # FIXME: Not the right idea for suffix!
     # my_public_url_suffix = "http://localhost.foo.fi:8000/public/"+albumurl
-    my_public_url_suffix = "http://fotosynteesi.herokuapp.com/public/"+albumurl
+    my_public_url_suffix = "http://fotomemo.herokuapp.com/public/"+albumurl
     album = get_object_or_404(Album,public_url_suffix=my_public_url_suffix)
     page = Page.objects.filter(album=album, number=pagenumber)
     images = Image.objects.filter(album=album, page=page)
