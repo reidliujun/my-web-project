@@ -57,9 +57,11 @@ Views -> login related views.
 
 ###Instructions how to use your application and link to Heroku where it is deployed.
 
-Once visit our website, first user can register and login as a user, and user can create album, pages. When user create the page, he can choose the layout and drag the photos from the images pool to the page, and it will directly append the photos to the pages. 
-
-User can also share, order and delete the album when in the “/album” page. User can view all the images he has in the “photo” tag and also view the order history and account information.
+1. Once visit our website, first user can register and login as a user, and user can also login use facebook account, it will redirect to the page after facebook authorized.
+2. User can create album, pages. When user creates album by adding the title, ajax will detect whether this title is available or not when the mouse not focus in the input area. When user create the page, he can choose the layout and drag the photos from the images pool to the page, and it will directly append the photos to the pages. Also, user can drag the photos back to the gallery and this will detached the images to the special page.
+3. User can add photo after choose the layout style, and user can also add and view the photo by clicking the "photo" tag in the navigation bar
+4. User can also share, order and delete the album when in the “/album” page. 
+5. User can view all the the order history and account information by clicking the username in the navigation bar.
 
 ###The link to heroku: fotomemo.herokuapp.com
 
