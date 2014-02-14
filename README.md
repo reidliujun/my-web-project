@@ -14,7 +14,7 @@
 > - *For each feature, how do you plan to implement it?*
 
 
-###Statement: I agree this project to be forked on 14.02.2014 17:34 by Erik Enomaa.
+###Statement: I (Jun Liu) agree this project to be forked on 14.02.2014 17:34 by Erik Enomaa.
 
 <hr><hr>
 # Final submission infomation
